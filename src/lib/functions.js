@@ -103,8 +103,14 @@ functions.sendEmail = async (to, subject, html) => {
     return message
 }
 
-functions.generateCode = () => {
-    return uuid()
+functions.generateCode = length => {
+    const code = []
+    for(let i = 0; i < length; i++) {
+        const numRandom = Math.floor(Math.random() * (9 + 0) + 0)
+        code.push(numRandom)
+    }
+
+    return parseInt(code.join(''))
 }
 
 module.exports = functions

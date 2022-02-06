@@ -26,7 +26,7 @@ router.post('/signIn', async (req, res) => {
 
 router.post('/signUp', async (req, res) => {
     const { name, username, email, password, role } = req.body
-    const securityCode = generateCode()
+    const securityCode = generateCode(6)
     const newUser = new UsersModel({
         name,
         username,
@@ -36,13 +36,12 @@ router.post('/signUp', async (req, res) => {
         securityCode
     })
 
-    
     try {
         await sendEmail(email, 'Verify Email', `<label>Security Code</label><input type="text" value="${securityCode}" />`)
         await newUser.save()
-        res.json({ server: 'userRegistd'}).status(200)
+        res.json({ server: 'userRegister'}).status(200)
     } catch(e) {
-        res.json({ server: 'userNotRegistd'}).status(200)
+        res.json({ server: 'userNotRegister'}).status(200)
     }
 })
 
@@ -50,7 +49,7 @@ router.put('/verifyEmail', async (req, res) => {
     const { securityCode } = req.body
     const user = await UsersModel.findOne({ securityCode }).exec()
     if(user !== null) {
-        const updatePassword = await UsersModel.updateOne({ securityCode }, { securityCode: generateCode(), verifyEmail: true })
+        const updatePassword = await UsersModel.updateOne({ securityCode }, { securityCode: generateCode(6), verifyEmail: true })
         if(updatePassword.modifiedCount === 1) res.json({server: 'accountVerify'})
         else res.json({server: 'accountNotVerify'})
     } else res.json({server: 'securityCodeInvalid'})
@@ -60,11 +59,13 @@ router.post('/securityCode', async (req, res) => {
     const { email } = req.body
     const user = await UsersModel.findOne({ email }).exec()
     if(user !== null) {
-        const securityCode = generateCode()
-        await sendEmail(email, 'Reset Password Code', `<label>Security Code</label><input type="text" value="${securityCode}" />`)
-        const updateSecurityCode = await UsersModel.updateOne({ email }, { securityCode }).exec()
-        if(updateSecurityCode.modifiedCount === 1) res.json({server: 'securityCodeSend'})
-        else res.json({server: 'securityCodeNotSend'})
+        if(user.verifyEmail){
+            const securityCode = generateCode(6)
+            await sendEmail(email, 'Reset Password Code', `<label>Security Code</label><input type="text" value="${securityCode}" />`)
+            const updateSecurityCode = await UsersModel.updateOne({ email }, { securityCode }).exec()
+            if(updateSecurityCode.modifiedCount === 1) res.json({server: 'securityCodeSend'})
+            else res.json({server: 'securityCodeNotSend'})
+        } else res.json({server: 'userNotVerify'})
     } else res.json({server: 'userNotExist'})
 })
 
@@ -72,7 +73,7 @@ router.put('/resetPassword', async (req, res) => {
     const { securityCode, newPassword } = req.body
     const user = await UsersModel.findOne({ securityCode }).exec()
     if(user !== null) {
-        const updatePassword = await UsersModel.updateOne({ securityCode }, { password: await encryptPassword(newPassword), securityCode: generateCode() })
+        const updatePassword = await UsersModel.updateOne({ securityCode }, { password: await encryptPassword(newPassword), securityCode: generateCode(6) })
         if(updatePassword.modifiedCount === 1) res.json({server: 'updatedPassword'})
         else res.json({server: 'updatedNotPassword'})
     } else res.json({server: 'securityCodeInvalid'})
