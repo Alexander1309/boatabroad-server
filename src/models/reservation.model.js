@@ -10,3 +10,5 @@ const ReservationsModel = new model('reservations', new Schema({
     currency: { type: String, required: true },
     processingPayment: { type: Boolean, default: false }
 }))
+
+module.exports = ReservationsModel
