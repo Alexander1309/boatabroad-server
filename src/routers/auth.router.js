@@ -50,7 +50,10 @@ router.put('/verifyEmail', async (req, res) => {
     const user = await UsersModel.findOne({ securityCode }).exec()
     if(user !== null) {
         const updatePassword = await UsersModel.updateOne({ securityCode }, { securityCode: generateCode(6), verifyEmail: true })
-        if(updatePassword.modifiedCount === 1) res.json({server: 'accountVerify'})
+        if(updatePassword.modifiedCount === 1) {
+            await sendEmail(user.email, 'Bienvenida A Boatabroad', `<h1>Bienvenid@ ${user.name} A Boatabroad</h1>`)
+            res.json({server: 'accountVerify'})
+        }
         else res.json({server: 'accountNotVerify'})
     } else res.json({server: 'securityCodeInvalid'})
 })

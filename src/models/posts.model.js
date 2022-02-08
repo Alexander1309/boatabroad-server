@@ -15,7 +15,6 @@ const PostsModel = new model('posts', new Schema({
     crew: { type: Number, required: true },
     city: { type: String, required: true },
     marinaBeach: { type: String, required: true },
-    minHours: { type: Number, required: true },
     damage: {type: Boolean, required: true },
     numberOfSailors: { type: Number, required: true },
     includeFood: { type: Boolean, required: true },
@@ -24,9 +23,7 @@ const PostsModel = new model('posts', new Schema({
     bedrooms: { type: Number, required: true },
     kitchen: { type: Boolean, required: true },
     verifiedPost: { type: Boolean, default: false },
-    lockedPost: { type: Boolean, default: false },
-    // reservedDays: { type: [Number]} // [[1, 3, 01]]
-    // reservedHours: {}
+    lockedPost: { type: Boolean, default: false }
 }))
 
 module.exports = PostsModel

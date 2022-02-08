@@ -113,4 +113,15 @@ functions.generateCode = length => {
     return parseInt(code.join(''))
 }
 
+functions.getReservedDays = (startDate, endDate) => {
+    const date1 = new Date(startDate).getDate()
+    const date2 = new Date(endDate).getDate()
+  
+    const reservedDays = parseInt(((((date2 - date1) / 1000) / 3600) / 24) + 1)
+  
+    if(reservedDays <= 0) return 0
+    
+    return reservedDays
+}
+
 module.exports = functions

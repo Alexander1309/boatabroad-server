@@ -15,12 +15,12 @@ router.get('/assets/:folder/:filename', (req, res) => {
     })
 })
 
-router.get('/getPosts', verifyToken, verifyRoles(['User', 'Seller']), async (req, res) => {
+router.get('/getPosts', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
     const posts = await PostsModel.find({ verifiedPost: true }).exec()
     res.json(posts)
 })
 
-router.get('/getPosts/:idPost', verifyToken, verifyRoles(['User', 'Seller']), async (req, res) => {
+router.get('/getPosts/:idPost', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
     const { idPost } = req.params
     const post = await PostsModel.findOne({ _id: idPost }).exec()
     res.json(post)
