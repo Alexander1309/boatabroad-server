@@ -82,4 +82,13 @@ router.put('/resetPassword', async (req, res) => {
     } else res.json({server: 'securityCodeInvalid'})
 })
 
+router.post('/newCode', async (req, res) => {
+    const { email, subject } = req.body
+    const securityCode = generateCode(6)
+    await sendEmail(email, subject, `<label>Security Code</label><input type="text" value="${securityCode}" />`)
+    const updatePassword = await UsersModel.updateOne({ email }, { securityCode })
+    if(updatePassword.modifiedCount === 1) res.json({server: 'mailSent'})
+    else res.json({server: 'unsentMail'})
+})
+
 module.exports = router
