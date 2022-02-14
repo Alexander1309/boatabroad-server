@@ -45,7 +45,7 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
         largeDescription,
         price: parseFloat(price),
         currency,
-        imgUrl: `http://localhost:3001/assets/posts_picture/${filename}`,
+        imgUrl: `${process.env.ApiUrl}/assets/posts_picture/${filename}`,
         pathImg: path,
         boatType,
         boatSize: parseFloat(boatSize),
@@ -68,7 +68,7 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
             await sendEmail(admin.email, 'New Post From Boatabroad', msgNewPost(newPost._id))
         })
         await newPost.save()
-        const adminRes = await ( await Post('http://localhost:3001/admin/postToBeVerified', {_id: newPost._id, idUser: newPost.idUser})).server
+        const adminRes = await ( await Post('${process.env.ApiUrl}/admin/postToBeVerified', {_id: newPost._id, idUser: newPost.idUser})).server
         console.log('adminRes', adminRes)
         if(adminRes === 'postInVerification') res.json({ server: 'postCreated'}).status(200)
         else {
@@ -118,7 +118,7 @@ router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validate
                 largeDescription,
                 price: parseFloat(price),
                 currency,
-                imgUrl: `http://localhost:3001/assets/posts_picture/${filename}`,
+                imgUrl: `${process.env.ApiUrl}/assets/posts_picture/${filename}`,
                 pathImg: path,
                 boatType,
                 boatSize: parseFloat(boatSize),

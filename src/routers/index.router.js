@@ -42,7 +42,7 @@ router.put('/uploadProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 
     const { _id } = req.dataUser
 
     const pathImg = await (await UsersModel.findOne({ _id }).exec()).pathPicture
-    const urlImg = `http://localhost:3001/assets/profile_picture/${filename}`
+    const urlImg = `${process.env.ApiUrl}/assets/profile_picture/${filename}`
 
     if(pathImg !== 'icon') {
         const deletedFile = await deleteFile(pathImg)
