@@ -24,11 +24,16 @@ router.get('/getPosts', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), a
     res.json(posts)
 })
 
-router.get('/getPosts/:idPost/:bType/:mBeach/:cityBoat/:numOfSailors', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
-    const { idPost, bType, mBeach, cityBoat, numOfSailors } = req.params
-    const posts = await PostsModel.find({ verifiedPost: true }).exec()
-    const filterPosts = posts.filter(({_id, boatType, marinaBeach, city, numberOfSailors}) => _id.toString() === idPost || boatType === bType || marinaBeach === mBeach || city === cityBoat || numberOfSailors === numOfSailors)
-    if(filterPosts.length > 0) res.json(filterPosts)
+router.get('/getPosts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+    const { id } = req.params
+    const posts = await PostsModel.findOne({ verifiedPost: true, _id: id }).exec()
+    res.json(posts)
+})
+
+router.get('/getPosts/:bType/:mBeach/:cityBoat/:numOfSailors', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+    const { bType, mBeach, cityBoat, numOfSailors } = req.params
+    const posts = await PostsModel.find({ verifiedPost: true, $or: [{boatType: bType}, {marinaBeach: mBeach}, {city: cityBoat}, {numberOfSailors: JSON.parse(numOfSailors)}]}).exec()
+    if(posts.length > 0) res.json(posts)
     else res.json({server: 'NoPublication'})
 })
 
