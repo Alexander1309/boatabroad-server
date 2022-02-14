@@ -68,13 +68,7 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
             await sendEmail(admin.email, 'New Post From Boatabroad', msgNewPost(newPost._id))
         })
         await newPost.save()
-        const adminRes = await ( await Post('${process.env.ApiUrl}/admin/postToBeVerified', {_id: newPost._id, idUser: newPost.idUser})).server
-        console.log('adminRes', adminRes)
-        if(adminRes === 'postInVerification') res.json({ server: 'postCreated'}).status(200)
-        else {
-            await deleteFile(path)
-            res.json({ server: 'postNotCreated'}).status(200)
-        }
+        res.json({ server: 'postCreated'}).status(200)
     } catch(e) {
         await deleteFile(path)
         res.json({ server: 'postNotCreated'}).status(200)
