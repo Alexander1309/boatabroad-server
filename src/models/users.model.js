@@ -9,7 +9,8 @@ const UsersModel = new model('users', new Schema({
     profilePicture: { type: String, default: 'icon'},
     pathPicture: { type: String, default: 'icon'},
     securityCode: { type: String, unique: true },
-    verifyEmail: { type: Boolean, default: false }
+    verifyEmail: { type: Boolean, default: false },
+    timer: { type: Number, default: 60 * 1000 }, // Timer para verificar el codigo de seguridad
 }))
 
 module.exports = UsersModel
