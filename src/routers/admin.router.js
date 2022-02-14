@@ -18,57 +18,16 @@ router.get('/getVerifyPosts', verifyToken, verifyRoles(['Admin']), async (req, r
 router.post('/postToBeVerified', async (req, res) => {
     const {
         _id,
-        idUser,
-        title,
-        subtitle,
-        shortDescription,
-        largeDescription,
-        price,
-        currency,
-        imgUrl,
-        pathImg,
-        boatType,
-        boatSize,
-        crew,
-        city,
-        marinaBeach,
-        damage,
-        numberOfSailors,
-        includeFood,
-        includeDrinks,
-        bathrooms,
-        bedrooms,
-        kitchen,
-        verifiedPost,
-        lockedPost
+        idUser
     } = req.body
 
+    console.log(req.body)
+    
     const verifyPost = new VerifyPosts({
         idPost: _id,
-        idUser,
-        title,
-        subtitle,
-        shortDescription,
-        largeDescription,
-        price,
-        currency,
-        imgUrl,
-        pathImg,
-        boatType,
-        boatSize,
-        crew,
-        city,
-        marinaBeach,
-        damage,
-        numberOfSailors,
-        includeFood,
-        includeDrinks,
-        bathrooms,
-        bedrooms,
-        kitchen,
-        verifiedPost,
-        lockedPost
+        idUser
     })
+    console.log(verifyPost)
 
     try {
         await verifyPost.save()

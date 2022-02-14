@@ -11,7 +11,7 @@ router.post('/signIn', async (req, res) => {
         if(user.verifyEmail){
             const validPass = await verifyPassword(password, user.password)
             if(validPass) {
-                jwt.sign({user}, process.env.SecretKey, (err, token) => {
+                jwt.sign({user}, process.env.JwtSecretKey, (err, token) => {
                     if(err) res.json({ server: 'errorServer'}).status(409)
                     else {
                         const { _id, name, username, email, role, profilePicture } = user

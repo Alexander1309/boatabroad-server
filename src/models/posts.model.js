@@ -15,7 +15,7 @@ const PostsModel = new model('posts', new Schema({
     crew: { type: Number, required: true },
     city: { type: String, required: true },
     marinaBeach: { type: String, required: true },
-    damage: {type: Boolean, required: true },
+    damage: {type: Number, required: '0' },
     numberOfSailors: { type: Number, required: true },
     includeFood: { type: Boolean, required: true },
     includeDrinks: { type: Boolean, required: true },

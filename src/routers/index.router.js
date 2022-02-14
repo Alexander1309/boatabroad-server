@@ -1,10 +1,14 @@
 const router = require('express').Router()
+const Stripe = require('stripe')
 const path = require('path')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
 const { verifyToken, verifyRoles, upload, validateUpload, deleteFile } = require('../lib/functions')
+require('dotenv').config()
 
 const uploadProfilePicture = upload('profile_picture', 200000, /png|jpg|jpeg/, 'profile_picture')
+
+const stripe = new Stripe(process.env.StripeSecretKey)
 
 router.get('/assets/:folder/:filename', (req, res) => {
     const { folder, filename } = req.params
@@ -20,10 +24,12 @@ router.get('/getPosts', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), a
     res.json(posts)
 })
 
-router.get('/getPosts/:idPost', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
-    const { idPost } = req.params
-    const post = await PostsModel.findOne({ _id: idPost }).exec()
-    res.json(post)
+router.get('/getPosts/:idPost/:bType/:mBeach/:cityBoat/:numOfSailors', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+    const { idPost, bType, mBeach, cityBoat, numOfSailors } = req.params
+    const posts = await PostsModel.find({ verifiedPost: true }).exec()
+    const filterPosts = posts.filter(({_id, boatType, marinaBeach, city, numberOfSailors}) => _id.toString() === idPost || boatType === bType || marinaBeach === mBeach || city === cityBoat || numberOfSailors === numOfSailors)
+    if(filterPosts.length > 0) res.json(filterPosts)
+    else res.json({server: 'NoPublication'})
 })
 
 router.put('/uploadProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), validateUpload(uploadProfilePicture), async (req, res) => {
@@ -75,6 +81,19 @@ router.delete('/deleteProfilePicture', verifyToken, verifyRoles(['User', 'Seller
     } else {
         res.json({server: 'deletedNotProfilePicture'})
     }
+})
+
+router.post('/checkout', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+    const { id, amount } = req.body
+    const payment = await stripe.paymentIntents.create({
+        amount,
+        currency: "MXN",
+        description: "prueba",
+        payment_method: id,
+        confirm: true
+    })
+
+    console.log(payment)
 })
 
 module.exports = router

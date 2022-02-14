@@ -31,7 +31,7 @@ functions.verifyToken = (req, res, next) => {
     try {
         const token = req.headers['authorization'].split(' ')[1]
         if(token !== undefined){
-            jwt.verify(token, process.env.SecretKey, (err, data) => {
+            jwt.verify(token, process.env.JwtSecretKey, (err, data) => {
                 if(err) res.json({server: 'SessionExpired'}).status(403)
                 else {
                     req.dataUser = data.user
