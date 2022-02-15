@@ -19,7 +19,7 @@ router.get('/assets/:folder/:filename', (req, res) => {
     })
 })
 
-router.get('/getPosts', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+router.get('/getPosts', async (req, res) => {
     const posts = await PostsModel.find({ verifiedPost: true }).exec()
     res.json(posts)
 })
