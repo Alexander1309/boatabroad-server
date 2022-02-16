@@ -19,15 +19,19 @@ router.get('/assets/:folder/:filename', (req, res) => {
     })
 })
 
-router.get('/getPosts', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+router.get('/getPosts', async (req, res) => {
     const posts = await PostsModel.find({ verifiedPost: true }).exec()
     res.json(posts)
 })
 
 router.get('/getPosts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
     const { id } = req.params
-    const posts = await PostsModel.findOne({ verifiedPost: true, _id: id }).exec()
-    res.json(posts)
+    const post = await PostsModel.findOne({ verifiedPost: true, _id: id })
+    const seller = await UsersModel.findOne({ _id: post.idUser })
+
+    if (!seller) return res.status(404).json({ message: 'Seller not found' })
+
+    res.json({ ...post._doc, sellerName: seller.name })
 })
 
 router.get('/getPosts/:bType/:mBeach/:cityBoat/:numOfSailors', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
