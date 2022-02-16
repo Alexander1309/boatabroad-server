@@ -7,6 +7,7 @@ const fs = require('fs-extra')
 const nodemailer = require('nodemailer')
 require('dotenv').config()
 const functions = {}
+let memory = []
 
 functions.encryptPassword = async password => {
     try {
@@ -58,27 +59,51 @@ functions.storage = folder => multer.diskStorage({
     }
 })
 
-functions.upload = (name, size, types, folder) => multer({
+functions.upload = (name, size, types, folder, files) => multer({
     storage: functions.storage(folder),
     limits: {
         fileSize: size
     },
     fileFilter: (req, file, cb) => {
+        memory.push(file)
         const type = file.originalname.split('.')[1]
-        if(types.test(type)) cb(null, true)
-        else cb('fileNotAllowed', false)
-    }
-}).single(name)
-
-functions.validateUpload = upload => (req, res, next) => upload(req, res, (err) => err === 'fileNotAllowed'? res.json({server: 'fileNotAllowed'}) : err ? res.json({server: 'fileTooLarge'}) : next())
-
-functions.deleteFile = async path => {
-    try {
-        const file = await fs.existsSync(path)
-        if(file) {
-            const deletedFile = await fs.unlink(path)
-            return true
+        if(memory.length > files) {
+            cb('AmountOfFilesNotAllow', false)
         }
+        else if(types.test(type)) {
+            cb(null, true)
+        }
+        else {
+            cb('fileNotAllowed', false)
+        }
+    }
+}).array(name)
+
+functions.validateUpload = upload => (req, res, next) => upload(req, res, (err) => {
+    if(err === 'fileNotAllowed') {
+        res.json({server: 'fileNotAllowed'})
+        memory = []
+    } else if(err === 'AmountOfFilesNotAllow') { 
+        res.json({server: 'AmountOfFilesNotAllow'}) 
+        memory = []
+    } else if(err)  {
+        res.json({server: 'fileTooLarge'}) 
+        memory = []  
+    } else {
+        memory = []
+        next()
+    }
+})
+
+functions.deleteFile = async paths => {
+    try {
+        paths.map(async path => {
+            const file = await fs.existsSync(path)
+            if(file) {
+                await fs.unlink(path)
+            }
+        })
+        return true
     } catch(e) {
         return false
     }

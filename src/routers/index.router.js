@@ -6,7 +6,7 @@ const UsersModel = require('../models/users.model')
 const { verifyToken, verifyRoles, upload, validateUpload, deleteFile } = require('../lib/functions')
 require('dotenv').config()
 
-const uploadProfilePicture = upload('profile_picture', 200000, /png|jpg|jpeg/, 'profile_picture')
+const uploadProfilePicture = upload('profile_picture', 500000, /png|jpg|jpeg/, 'profile_picture', 1)
 
 const stripe = new Stripe(process.env.StripeSecretKey)
 
@@ -38,30 +38,30 @@ router.get('/getPosts/:bType/:mBeach/:cityBoat/:numOfSailors', verifyToken, veri
 })
 
 router.put('/uploadProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), validateUpload(uploadProfilePicture), async (req, res) => {
-    const { filename, path } = req.file
+    const files = req.files
     const { _id } = req.dataUser
 
-    const pathImg = await (await UsersModel.findOne({ _id }).exec()).pathPicture
-    const urlImg = `${process.env.ApiUrl}/assets/profile_picture/${filename}`
+    const user = await UsersModel.findOne({ _id }).exec()
+    const urlImg = `${process.env.ApiUrl}assets/profile_picture/${files[0].filename}`
 
-    if(pathImg !== 'icon') {
-        const deletedFile = await deleteFile(pathImg)
+    if(user !== null && user.pathPicture !== 'icon') {
+        const deletedFile = await deleteFile([user.pathPicture])
         if(deletedFile) {
-            const updateProfilePicture = await UsersModel.updateOne({ _id }, { profilePicture: urlImg, pathPicture: path }).exec()
+            const updateProfilePicture = await UsersModel.updateOne({ _id }, { profilePicture: urlImg, pathPicture: files[0].path }).exec()
             if(updateProfilePicture.modifiedCount === 1) res.json({sevrer: 'updatedProfilePicture', urlImg})
             else {
-                await deleteFile(path)
+                await deleteFile(files)
                 res.json({server: 'updatedNotProfilePicture'})
             }
         } else {
-            await deleteFile(path)
+            await deleteFile(files)
             res.json({server: 'updatedNotProfilePicture'})
         }
     } else {
-        const updateProfilePicture = await UsersModel.updateOne({ _id }, { profilePicture: urlImg, pathPicture: path }).exec()
+        const updateProfilePicture = await UsersModel.updateOne({ _id }, { profilePicture: urlImg, pathPicture: files[0].path }).exec()
         if(updateProfilePicture.modifiedCount === 1) res.json({sevrer: 'updatedProfilePicture', urlImg})
         else {
-            await deleteFile(path)
+            await deleteFile(files)
             res.json({server: 'updatedNotProfilePicture'})
         }
     }
@@ -73,7 +73,7 @@ router.delete('/deleteProfilePicture', verifyToken, verifyRoles(['User', 'Seller
     const pathImg = await (await UsersModel.findOne({ _id }).exec()).pathPicture
 
     if(pathImg !== 'icon') {
-        const deletedFile = await deleteFile(pathImg)
+        const deletedFile = await deleteFile([pathImg])
         if(deletedFile) {
             const deleteProfilePicture = await UsersModel.updateOne({ _id }, { profilePicture: 'icon', pathPicture: 'icon' }).exec()
             if(deleteProfilePicture.modifiedCount === 1) res.json({sevrer: 'deletedProfilePicture'})

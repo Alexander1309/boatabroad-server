@@ -5,7 +5,7 @@ const { upload, validateUpload, verifyToken, verifyRoles, deleteFile, sendEmail 
 const { msgNewPost } = require('../lib/msg')
 const { Post } = require('../lib/http')
 
-const uploadImgPost = upload('img', 500000, /png|jpg|jpeg/, 'posts_picture')
+const uploadImgPost = upload('img', 500000, /png|jpg|jpeg/, 'posts_picture', 7)
 
 router.get('/getPosts', verifyToken, verifyRoles(['Seller']), async (req, res) => {
     const { _id } = req.dataUser
@@ -34,8 +34,14 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
         bedrooms,
         kitchen
     } = req.body
-    const { filename, path } = req.file
     const { _id } = req.dataUser
+    const files = req.files
+    const imgUrls = []
+    const imgPaths = []
+    files.map(({filename, path}) => { 
+        imgUrls.push(`${process.env.ApiUrl}assets/posts_picture/${filename}`)
+        imgPaths.push(path)
+    })
 
     const newPost = new PostsModel({
         idUser: _id,
@@ -45,8 +51,8 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
         largeDescription,
         price: parseFloat(price),
         currency,
-        imgUrl: `${process.env.ApiUrl}/assets/posts_picture/${filename}`,
-        pathImg: path,
+        imgUrls,
+        imgPaths,
         boatType,
         boatSize: parseFloat(boatSize),
         crew: parseInt(crew),
@@ -61,22 +67,15 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
         kitchen
     })
 
-    const admins = await UsersModel.find({role: 'Admin'}).exec()
-
     try {
+        const admins = await UsersModel.find({role: 'Admin'}).exec()
         admins.map(async admin => {
             await sendEmail(admin.email, 'New Post From Boatabroad', msgNewPost(newPost._id))
         })
         await newPost.save()
-        const adminRes = await ( await Post('${process.env.ApiUrl}/admin/postToBeVerified', {_id: newPost._id, idUser: newPost.idUser})).server
-        console.log('adminRes', adminRes)
-        if(adminRes === 'postInVerification') res.json({ server: 'postCreated'}).status(200)
-        else {
-            await deleteFile(path)
-            res.json({ server: 'postNotCreated'}).status(200)
-        }
+        res.json({ server: 'postCreated'}).status(200)
     } catch(e) {
-        await deleteFile(path)
+        await deleteFile(files)
         res.json({ server: 'postNotCreated'}).status(200)
     }
 })
@@ -84,7 +83,14 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
 router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validateUpload(uploadImgPost), async (req, res) => {
     const { idPost } = req.params
     const { _id } = req.dataUser
-    const { filename, path } = req.file
+    const files = req.files
+    const imgUrls = []
+    const imgPaths = []
+    files.map(({filename, path}) => { 
+        imgUrls.push(`${process.env.ApiUrl}assets/posts_picture/${filename}`)
+        imgPaths.push(path)
+    })
+
     const { 
         title,
         subtitle,
@@ -107,9 +113,8 @@ router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validate
     } = req.body
 
     const post = await PostsModel.findOne({_id: idPost}).exec()
-    console.log(post)
     if(post !== null && post.idUser === _id) {
-        const deletedFile = await deleteFile(post.pathImg)
+        const deletedFile = await deleteFile(post.imgPaths)
         if(deletedFile) {
             const updatePost = await PostsModel.updateOne({ _id: idPost }, {
                 title,
@@ -118,8 +123,8 @@ router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validate
                 largeDescription,
                 price: parseFloat(price),
                 currency,
-                imgUrl: `${process.env.ApiUrl}/assets/posts_picture/${filename}`,
-                pathImg: path,
+                imgUrls,
+                imgPaths,
                 boatType,
                 boatSize: parseFloat(boatSize),
                 crew: parseInt(crew),
@@ -136,16 +141,16 @@ router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validate
         
             if(updatePost.modifiedCount === 1) res.json({server: 'updatedPost'}) 
             else {
-                await deleteFile(path)
+                await deleteFile()
                 res.json({server: 'updatedNotPost'})
             }
         } else {
-            await deleteFile(path)
+            await deleteFile(imgPaths)
             res.json({server: 'updatedNotPost'})
         }
         
     } else {
-        await deleteFile(path)
+        await deleteFile(imgPaths)
         res.json({server: 'postNotExist'})
     }
 })
@@ -157,7 +162,7 @@ router.delete('/deletePost/:idPost', verifyToken, verifyRoles(['Seller']), async
     const post = await PostsModel.findOne({_id: idPost}).exec()
 
     if(post !== null && post.idUser === _id) {
-        const deletedFile = await deleteFile(post.pathImg)
+        const deletedFile = await deleteFile(post.imgPaths)
         if(deletedFile) {
             const deletePost = await PostsModel.deleteOne({ _id: idPost }).exec()
         
