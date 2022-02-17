@@ -86,12 +86,12 @@ functions.validateUpload = upload => (req, res, next) => upload(req, res, (err) 
     } else if(err === 'AmountOfFilesNotAllow') { 
         memory = []
         res.json({server: 'AmountOfFilesNotAllow'}) 
-    } else if(err.code === 'LIMIT_FILE_SIZE')  {
-        memory = []  
-        res.json({server: 'fileTooLarge'}) 
     } else if(err) {
         memory = []  
-        res.json({server: err.code}) 
+        if(err.code === 'LIMIT_FILE_SIZE')  {
+            memory = []  
+            res.json({server: 'fileTooLarge'}) 
+        } else res.json({server: err})
     } else {
         memory = []
         next()
