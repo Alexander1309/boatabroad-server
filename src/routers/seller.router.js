@@ -39,7 +39,7 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
     const imgUrls = []
     const imgPaths = []
     files.map(({filename, path}) => { 
-        imgUrls.push(`${process.env.ApiUrl}assets/posts_picture/${filename}`)
+        imgUrls.push(`${process.env.ApiUrl}/assets/posts_picture/${filename}`)
         imgPaths.push(path)
     })
 
@@ -87,7 +87,7 @@ router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validate
     const imgUrls = []
     const imgPaths = []
     files.map(({filename, path}) => { 
-        imgUrls.push(`${process.env.ApiUrl}assets/posts_picture/${filename}`)
+        imgUrls.push(`${process.env.ApiUrl}/assets/posts_picture/${filename}`)
         imgPaths.push(path)
     })
 
