@@ -81,14 +81,17 @@ functions.upload = (name, size, types, folder, files) => multer({
 
 functions.validateUpload = upload => (req, res, next) => upload(req, res, (err) => {
     if(err === 'fileNotAllowed') {
+        memory = []
         res.json({server: 'fileNotAllowed'})
-        memory = []
     } else if(err === 'AmountOfFilesNotAllow') { 
-        res.json({server: 'AmountOfFilesNotAllow'}) 
         memory = []
-    } else if(err)  {
-        res.json({server: 'fileTooLarge'}) 
+        res.json({server: 'AmountOfFilesNotAllow'}) 
+    } else if(err.code === 'LIMIT_FILE_SIZE')  {
         memory = []  
+        res.json({server: 'fileTooLarge'}) 
+    } else if(err) {
+        memory = []  
+        res.json({server: err.code}) 
     } else {
         memory = []
         next()
