@@ -145,7 +145,8 @@ router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validate
                 includeDrinks,
                 bathrooms: parseInt(bathrooms),
                 bedrooms: parseInt(bedrooms),
-                kitchen
+                kitchen,
+                verifiedPost: false
             }).exec()
         
             if(updatePost.modifiedCount === 1) res.json({server: 'updatedPost'}) 
