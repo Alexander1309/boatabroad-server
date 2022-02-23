@@ -75,12 +75,10 @@ router.put('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'Admi
             if(updateProfilePicture.modifiedCount === 1) res.json({sevrer: 'updatedProfilePicture', secure_url})
             else {
                 await deleteFileUpload([public_id])
-                await deleteMultiFile(files)
                 res.json({server: 'updatedNotProfilePicture'})
             }
         } else {
             await deleteFileUpload([public_id])
-            await deleteMultiFile(files)
             res.json({server: 'updatedNotProfilePicture'})
         }
     } else {
@@ -88,7 +86,6 @@ router.put('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'Admi
         if(updateProfilePicture.modifiedCount === 1) res.json({sevrer: 'updatedProfilePicture', secure_url})
         else {
             await deleteFileUpload([public_id])
-            await deleteMultiFile(files)
             res.json({server: 'updatedNotProfilePicture'})
         }
     }

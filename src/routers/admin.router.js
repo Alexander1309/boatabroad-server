@@ -39,7 +39,7 @@ router.put('/verifyPost/:idPost', verifyToken, verifyRoles(['Admin']), async (re
             const user = await UsersModel.findOne({_id: post.idUser}).exec()
             await sendEmail(user.email, 'Publicacion verificada', 'La publicasion a sido aprobada', `<h1>Holaaaa</h1>`)
             res.json({server: 'updatedPost'})
-        } else res.json({server: 'updatedNotPost'})
+        } else res.json({server: 'postNotUpdated'})
     } else res.json({server: 'postNotExist'})
 })
 
@@ -54,7 +54,7 @@ router.put('/lockedPost/:idPost', verifyToken, verifyRoles(['Admin']), async (re
             const user = await UsersModel.findOne({_id: post.idUser}).exec()
             await sendEmail(user.email, 'Publicacion Bloqueada', 'La publicasion a sido bloqueada por incumplir reglas', `<h1>Holaaaa</h1>`)
             res.json({server: 'updatedPost'})
-        } else res.json({server: 'updatedNotPost'})
+        } else res.json({server: 'postNotUpdated'})
     } else res.json({server: 'postNotExist'})
 })
 

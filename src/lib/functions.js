@@ -146,14 +146,15 @@ functions.deleteMultiFile = async paths => {
 
 functions.deleteFileUpload = async publicIds => {
     try {
-        let res = true
-        publicIds.map(async publicId => {
+        for (const publicId of publicIds) {
             const { result } = await uploader.destroy(publicId)
-            if(result === 'ok') res = true
-            else res = false
-        })
-        return res
+            if(result !== 'ok') {
+                return false
+            }
+        }
+        return true
     } catch(e) {
+        console.error('Error deleting file', e)
         return false
     }
 }
