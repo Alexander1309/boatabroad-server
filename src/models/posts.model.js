@@ -1,6 +1,6 @@
 const { model, Schema } = require('mongoose')
 
-const PostsModel = new model('posts', new Schema({
+const PostsSchema = new Schema({
     idUser: { type: String, required: true },
     title: { type: String, required: true },
     subtitle: { type: String, required: true },
@@ -35,6 +35,8 @@ const PostsModel = new model('posts', new Schema({
     mineralWaters: { type: Number, required: true },
     verifiedPost: { type: Boolean, default: false },
     lockedPost: { type: Boolean, default: false }
-}))
+})
+
+const PostsModel = new model('posts', PostsSchema)
 
 module.exports = PostsModel

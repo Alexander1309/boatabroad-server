@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const Stripe = require('stripe')
 const path = require('path')
+const _ = require('lodash')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
 const { verifyToken, verifyRoles, upload, validateUpload, pictureUpload, deleteFileUpload, deleteMultiFile } = require('../lib/functions')
@@ -19,12 +20,38 @@ router.get('/assets/:folder/:filename', (req, res) => {
     })
 })
 
-router.get('/getPosts', async (req, res) => {
-    const posts = await PostsModel.find({ verifiedPost: true }).exec()
+router.get('/posts', async (req, res) => {
+    const {
+        search,
+        startDate,
+        endDate,
+        numberOfSailors = 0,
+    } = req.query
+    const escapedSearch = new RegExp(_.escapeRegExp(search), 'i')
+
+    const posts = await PostsModel.find({
+        verifiedPost: true,
+        numberOfSailors: { $gte: numberOfSailors },
+        $or: [
+            {
+                title: { $regex: escapedSearch }
+            },
+            {
+                boatType: { $regex: escapedSearch }
+            },
+            {
+                city: { $regex: escapedSearch }
+            },
+            {
+                marinaBeach: { $regex: escapedSearch }
+            }
+        ],
+        // TODO add startDate and endDate filters
+    }).exec()
     res.json(posts)
 })
 
-router.get('/getPosts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+router.get('/posts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
     const { id } = req.params
     const post = await PostsModel.findOne({ verifiedPost: true, _id: id })
     const seller = await UsersModel.findOne({ _id: post.idUser })
@@ -32,13 +59,6 @@ router.get('/getPosts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']
     if (!seller) return res.status(404).json({ message: 'Seller not found' })
 
     res.json({ ...post._doc, sellerName: seller.name })
-})
-
-router.get('/getPosts/:bType/:mBeach/:cityBoat/:numOfSailors', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
-    const { bType, mBeach, cityBoat, numOfSailors } = req.params
-    const posts = await PostsModel.find({ verifiedPost: true, $or: [{boatType: bType}, {marinaBeach: mBeach}, {city: cityBoat}, {numberOfSailors: JSON.parse(numOfSailors)}]}).exec()
-    if(posts.length > 0) res.json(posts)
-    else res.json({server: 'NoPublication'})
 })
 
 router.put('/uploadProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), validateUpload(uploadProfilePicture), async (req, res) => {

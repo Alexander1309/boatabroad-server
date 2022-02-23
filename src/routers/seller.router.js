@@ -7,13 +7,13 @@ const { msgNewPost } = require('../lib/msg')
 
 const uploadImgPost = upload('img', 500000, /png|jpg|jpeg/, 'posts_picture', 7)
 
-router.get('/getPosts', verifyToken, verifyRoles(['Seller']), async (req, res) => {
+router.get('/posts', verifyToken, verifyRoles(['Seller']), async (req, res) => {
     const { _id } = req.dataUser
     const posts = await PostsModel.find({idUser: _id}).exec()
     res.json(posts)
 })
 
-router.get('/getPosts/:id', verifyToken, verifyRoles(['Seller']), async (req, res) => {
+router.get('/posts/:id', verifyToken, verifyRoles(['Seller']), async (req, res) => {
     const { id } = req.params
     const post = await PostsModel.findOne({ _id: id })
 
