@@ -5,9 +5,13 @@ const { v4: uuid } = require('uuid')
 const path = require('path')
 const fs = require('fs-extra')
 const nodemailer = require('nodemailer')
+const { v2: cloudinary } = require('cloudinary')
+const uploader = cloudinary.uploader
 require('dotenv').config()
 const functions = {}
 let memory = []
+
+cloudinary.config(process.env.CLOUDINARY_URL);
 
 functions.encryptPassword = async password => {
     try {
@@ -48,6 +52,22 @@ functions.verifyToken = (req, res, next) => {
 } 
 
 functions.verifyRoles = roles => (req, res, next) => roles.indexOf(req.dataUser.role) > -1 ? next() : res.sendStatus(403)
+
+functions.pictureUpload = async (path, width, height, folder) => {
+    const upload = await uploader.upload(path, {
+        secure: true, 
+        transformation: [{
+            width,
+            height,
+        }],
+        folder
+    })
+    const isDelitedFile = await functions.deleteOneFile(path)
+    if(isDelitedFile) {
+        const { secure_url, public_id } = upload
+        return { secure_url, public_id }
+    } return null
+}
 
 functions.storage = folder => multer.diskStorage({
     destination: (req, file, cb) => {
@@ -98,7 +118,19 @@ functions.validateUpload = upload => (req, res, next) => upload(req, res, (err) 
     }
 })
 
-functions.deleteFile = async paths => {
+functions.deleteOneFile = async path => {
+    try {
+        const file = await fs.existsSync(path)
+        if(file) {
+            await fs.unlink(path)
+            return true
+        } else return false
+    } catch(e) {
+        return false
+    }
+}
+
+functions.deleteMultiFile = async paths => {
     try {
         paths.map(async path => {
             const file = await fs.existsSync(path)
@@ -107,6 +139,20 @@ functions.deleteFile = async paths => {
             }
         })
         return true
+    } catch(e) {
+        return false
+    }
+}
+
+functions.deleteFileUpload = async publicIds => {
+    try {
+        let res = true
+        publicIds.map(async publicId => {
+            const { result } = await uploader.destroy(publicId)
+            if(result === 'ok') res = true
+            else res = false
+        })
+        return res
     } catch(e) {
         return false
     }
