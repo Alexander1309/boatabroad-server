@@ -13,6 +13,15 @@ router.get('/getPosts', verifyToken, verifyRoles(['Seller']), async (req, res) =
     res.json(posts)
 })
 
+router.get('/getPosts/:id', verifyToken, verifyRoles(['Seller']), async (req, res) => {
+    const { id } = req.params
+    const post = await PostsModel.findOne({ _id: id })
+
+    if (!post) return res.status(404).json({ message: 'Seller not found' })
+
+    res.json(post)
+})
+
 router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(uploadImgPost), async (req, res) => {
     let count = 0
     const { 
