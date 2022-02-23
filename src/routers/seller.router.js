@@ -22,7 +22,7 @@ router.get('/posts/:id', verifyToken, verifyRoles(['Seller']), async (req, res) 
     res.json(post)
 })
 
-router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(uploadImgPost), async (req, res) => {
+router.post('/posts', verifyToken, verifyRoles(['Seller']), validateUpload(uploadImgPost), async (req, res) => {
     let count = 0
     const { 
         title,
@@ -116,7 +116,7 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
     }
 })
 
-router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validateUpload(uploadImgPost), async (req, res) => {
+router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUpload(uploadImgPost), async (req, res) => {
     const { idPost } = req.params
     const { _id } = req.dataUser
     const files = req.files
@@ -217,7 +217,7 @@ router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validate
     }
 })
 
-router.delete('/deletePost/:idPost', verifyToken, verifyRoles(['Seller']), async (req, res) => {
+router.delete('/posts/:idPost', verifyToken, verifyRoles(['Seller']), async (req, res) => {
     const { idPost } = req.params
     const { _id } = req.dataUser
 

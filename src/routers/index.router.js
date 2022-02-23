@@ -61,7 +61,7 @@ router.get('/posts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), 
     res.json({ ...post._doc, sellerName: seller.name })
 })
 
-router.put('/uploadProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), validateUpload(uploadProfilePicture), async (req, res) => {
+router.put('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), validateUpload(uploadProfilePicture), async (req, res) => {
     const files = req.files
     const { _id } = req.dataUser
 
@@ -94,7 +94,7 @@ router.put('/uploadProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 
     }
 })
 
-router.delete('/deleteProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+router.delete('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
     const { _id } = req.dataUser
 
     const pathImg = await (await UsersModel.findOne({ _id }).exec()).pathPicture

@@ -4,7 +4,7 @@ const { Delete } = require('../lib/http')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
 
-router.get('/getUsers', verifyToken, verifyRoles(['Admin']), async (req, res) => {
+router.get('/users', verifyToken, verifyRoles(['Admin']), async (req, res) => {
     const posts = await UsersModel.find().exec()
     res.json(posts)
 })
