@@ -30,9 +30,9 @@ const PostsModel = new model('posts', new Schema({
     hasTowels: { type: Boolean, required: true },
     hasDishes: { type: Boolean, required: true },
     beers: { type: Number, required: true },
-    sodas: { type: Boolean, required: true },
+    hasSodas: { type: Boolean, required: true },
     hasIce: { type: Boolean, required: true },
-    tableWaters: { type: Number, required: true },
+    mineralWaters: { type: Number, required: true },
     verifiedPost: { type: Boolean, default: false },
     lockedPost: { type: Boolean, default: false }
 }))

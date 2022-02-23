@@ -51,9 +51,9 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
         hasTowels,
         hasDishes,
         beers,
-        sodas,
+        hasSodas,
         hasIce,
-        tableWaters,
+        mineralWaters,
     } = req.body
     const { _id } = req.dataUser
     const files = req.files
@@ -96,9 +96,9 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
         hasTowels,
         hasDishes,
         beers: parseInt(beers),
-        sodas,
+        hasSodas,
         hasIce,
-        tableWaters: parseInt(tableWaters)
+        mineralWaters: parseInt(mineralWaters)
     })
 
     try {
@@ -107,11 +107,12 @@ router.post('/newPost', verifyToken, verifyRoles(['Seller']), validateUpload(upl
             await sendEmail(admin.email, 'New Post From Boatabroad', msgNewPost(newPost._id))
         })
         await newPost.save()
-        res.json({ server: 'postCreated'}).status(200)
+        res.json({ server: 'postCreated'})
     } catch(e) {
+        console.error(e);
         await deleteFileUpload(imgPaths)
         await deleteMultiFile(files)
-        res.json({ server: 'postNotCreated'}).status(200)
+        res.status(500).json({ server: 'postNotCreated'})
     }
 })
 
@@ -154,9 +155,9 @@ router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validate
         hasTowels,
         hasDishes,
         beers,
-        sodas,
+        hasSodas,
         hasIce,
-        tableWaters,
+        mineralWaters,
     } = req.body
 
     const post = await PostsModel.findOne({_id: idPost}).exec()
@@ -192,9 +193,9 @@ router.put('/updatePost/:idPost', verifyToken, verifyRoles(['Seller']), validate
                 hasTowels,
                 hasDishes,
                 beers: parseInt(beers),
-                sodas,
+                hasSodas,
                 hasIce,
-                tableWaters: parseInt(tableWaters)
+                mineralWaters: parseInt(mineralWaters)
             }).exec()
 
             if(updatePost.modifiedCount === 1) res.json({server: 'updatedPost'}) 

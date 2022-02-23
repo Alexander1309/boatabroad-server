@@ -14,7 +14,7 @@ router.get('/assets/:folder/:filename', (req, res) => {
     const { folder, filename } = req.params
     const pathFile = path.join(__dirname, '../', 'assets', `${folder}`, `${filename}`)
     res.sendFile(pathFile, (err) => {
-        if(err) res.send('File not Exist').status(200)
+        if(err) res.send('File not Exist')
         else res.status(200)
     })
 })

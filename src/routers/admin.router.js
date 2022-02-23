@@ -22,9 +22,9 @@ router.post('/postToBeVerified', async (req, res) => {
 
     try {
         await verifyPost.save()
-        res.json({ server: 'postInVerification'}).status(200)
+        res.json({ server: 'postInVerification'})
     } catch(e) {
-        res.json({ server: 'postNotInVerification'}).status(200)
+        res.json({ server: 'postNotInVerification'})
     }  
 })
 
