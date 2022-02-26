@@ -33,8 +33,12 @@ const PostsModel = new model('posts', new Schema({
     sodas: { type: Boolean, required: true },
     hasIce: { type: Boolean, required: true },
     tableWaters: { type: Number, required: true },
-    verifiedPost: { type: Boolean, default: false },
-    lockedPost: { type: Boolean, default: false }
+    statusPost: {
+        approved: { type: Boolean, default: false },
+        locked: { type: Boolean, default: false },
+        rejected: {type: Boolean, default: false},
+        published: {type: Boolean, default: false},
+    }
 }))
 
 module.exports = PostsModel

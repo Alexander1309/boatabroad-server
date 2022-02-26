@@ -3,7 +3,16 @@ const Stripe = require('stripe')
 const path = require('path')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
-const { verifyToken, verifyRoles, upload, validateUpload, pictureUpload, deleteFileUpload, deleteMultiFile } = require('../lib/functions')
+const { 
+    verifyToken, 
+    verifyRoles, 
+    upload, 
+    validateUpload, 
+    pictureUpload, 
+    deleteFileUpload, 
+    deleteMultiFile,
+    getFullPayment
+} = require('../lib/functions')
 require('dotenv').config()
 
 const uploadProfilePicture = upload('profile_picture', 500000, /png|jpg|jpeg/, 'profile_picture', 1)
@@ -95,17 +104,12 @@ router.delete('/deleteProfilePicture', verifyToken, verifyRoles(['User', 'Seller
     }
 })
 
-router.post('/checkout', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
-    const { id, amount } = req.body
-    const payment = await stripe.paymentIntents.create({
-        amount,
-        currency: "MXN",
-        description: "prueba",
-        payment_method: id,
-        confirm: true
-    })
+router.post('/makeAReservation', async (req, res) => {
+    const { idPost } = req.body
+    const { price, currency } = await PostsModel.findOne({_id: idPost}).exec()
 
-    console.log(payment)
+    const fullPayment = getFullPayment(3, 1, price, 0, 1, currency)
+    res.json({fullPayment})
 })
 
 module.exports = router

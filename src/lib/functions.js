@@ -198,4 +198,14 @@ functions.getReservedDays = (startDate, endDate) => {
     return reservedDays
 }
 
+functions.getFullPayment = (hours, extraHours = 0, price, damage=0, percentage = 1, currency='USD') => {
+    const fullPayment = (((hours + extraHours) * price) / percentage) + damage
+    const convert = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency,
+    })
+
+    return convert.format(fullPayment)
+}
+
 module.exports = functions
