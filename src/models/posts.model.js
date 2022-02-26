@@ -31,7 +31,6 @@ const PostsSchema = new Schema({
     beers: { type: Number, required: true },
     hasSodas: { type: Boolean, required: true },
     hasIce: { type: Boolean, required: true },
-    tableWaters: { type: Number, required: true },
     mineralWaters: { type: Number, required: true },
     statusPost: {
         approved: { type: Boolean, default: false },
@@ -40,5 +39,7 @@ const PostsSchema = new Schema({
         published: {type: Boolean, default: false},
     }
 })
+
+const PostsModel = new model('posts', PostsSchema)
 
 module.exports = PostsModel
