@@ -36,6 +36,8 @@ const PostsSchema = new Schema({
     lockedPost: { type: Boolean, default: false }
 })
 
+PostsSchema.index({ city: 'text', boatType: 'text', marinaBeach: 'text' })
+
 const PostsModel = new model('posts', PostsSchema)
 
 module.exports = PostsModel

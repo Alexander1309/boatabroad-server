@@ -4,7 +4,7 @@ const path = require('path')
 const _ = require('lodash')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
-const { verifyToken, verifyRoles, upload, validateUpload, pictureUpload, deleteFileUpload, deleteMultiFile } = require('../lib/functions')
+const { verifyToken, verifyRoles, upload, validateUpload, pictureUpload, deleteFileUpload, deleteMultiFile, getDiacriticSensitiveRegex } = require('../lib/functions')
 require('dotenv').config()
 
 const uploadProfilePicture = upload('profile_picture', 500000, /png|jpg|jpeg/, 'profile_picture', 1)
@@ -22,20 +22,25 @@ router.get('/assets/:folder/:filename', (req, res) => {
 
 router.get('/posts', async (req, res) => {
     const {
-        search,
+        search = '',
+        marinaBeach = '',
+        boatType = '',
+        minimumPrice = 0,
         startDate,
         endDate,
         numberOfSailors = 0,
     } = req.query
-    const escapedSearch = new RegExp(_.escapeRegExp(search), 'i')
+    const escapedSearch = new RegExp(getDiacriticSensitiveRegex(_.escapeRegExp(search)), 'i')
+    const marinaBeachSearch = new RegExp(getDiacriticSensitiveRegex(_.escapeRegExp(marinaBeach)), 'i')
+    const boatTypeSearch = new RegExp(getDiacriticSensitiveRegex(_.escapeRegExp(boatType)), 'i')
 
-    const posts = await PostsModel.find({
+    const options = {
         verifiedPost: true,
         numberOfSailors: { $gte: numberOfSailors },
+        marinaBeach: { $regex: marinaBeachSearch },
+        boatType: { $regex: boatTypeSearch },
+        price: { $gte: minimumPrice },
         $or: [
-            {
-                title: { $regex: escapedSearch }
-            },
             {
                 boatType: { $regex: escapedSearch }
             },
@@ -47,7 +52,9 @@ router.get('/posts', async (req, res) => {
             }
         ],
         // TODO add startDate and endDate filters
-    }).exec()
+    }
+
+    const posts = await PostsModel.find(options).exec()
     res.json(posts)
 })
 
