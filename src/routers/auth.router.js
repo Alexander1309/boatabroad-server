@@ -17,16 +17,16 @@ router.post('/signIn', async (req, res) => {
             const validPass = await verifyPassword(password, user.password)
             if(validPass) {
                 jwt.sign({user}, process.env.JwtSecretKey, (err, token) => {
-                    if(err) res.json({ server: 'errorServer'}).status(409)
+                    if(err) res.status(409).json({ server: 'errorServer'})
                     else {
                         const { _id, name, username, email, role, profilePicture } = user
                         const dataUser = {_id, name, username, email, role, profilePicture}
-                        res.json({server: 'signIn', token, dataUser}).status(200)
+                        res.json({server: 'signIn', token, dataUser})
                     }
                 })
-            } else res.json({ server: 'userNotExist'}).status(200)
-        } else res.json({ server: 'accountNotVerify'}).status(200)
-    } else res.json({ server: 'userNotExist'}).status(200)
+            } else res.json({ server: 'userNotExist'})
+        } else res.json({ server: 'accountNotVerify'})
+    } else res.json({ server: 'userNotExist'})
 })
 
 router.post("/signUp", async (req, res) => {
@@ -48,9 +48,9 @@ router.post("/signUp", async (req, res) => {
       `<label>Security Code</label><input type="text" value="${securityCode}" />`
     )
     await newUser.save()
-    res.json({ server: "userRegister" }).status(200)
+    res.json({ server: "userRegister" })
   } catch (e) {
-    res.json({ server: "userNotRegister" }).status(200)
+    res.json({ server: "userNotRegister" })
   }
 })
 

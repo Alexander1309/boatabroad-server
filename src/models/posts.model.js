@@ -1,6 +1,6 @@
 const { model, Schema } = require('mongoose')
 
-const PostsModel = new model('posts', new Schema({
+const PostsSchema = new Schema({
     idUser: { type: String, required: true },
     title: { type: String, required: true },
     subtitle: { type: String, required: true },
@@ -8,8 +8,7 @@ const PostsModel = new model('posts', new Schema({
     largeDescription: { type: String, require: true },
     price: { type: Number, required: true },
     currency: { type: String, required: true },
-    imgUrls: { type: [String], required: true },
-    imgPaths: { type: [String], required: true },
+    images: [{ path: String, url: String }],
     boatType: { type: String, required: true },
     boatSize: { type: Number, required: true },
     minHours: { type: Number, required: true },
@@ -30,8 +29,9 @@ const PostsModel = new model('posts', new Schema({
     hasTowels: { type: Boolean, required: true },
     hasDishes: { type: Boolean, required: true },
     beers: { type: Number, required: true },
-    sodas: { type: Boolean, required: true },
+    hasSodas: { type: Boolean, required: true },
     hasIce: { type: Boolean, required: true },
+<<<<<<< HEAD
     tableWaters: { type: Number, required: true },
     statusPost: {
         approved: { type: Boolean, default: false },
@@ -40,5 +40,15 @@ const PostsModel = new model('posts', new Schema({
         published: {type: Boolean, default: false},
     }
 }))
+=======
+    mineralWaters: { type: Number, required: true },
+    verifiedPost: { type: Boolean, default: false },
+    lockedPost: { type: Boolean, default: false }
+})
+
+PostsSchema.index({ city: 'text', boatType: 'text', marinaBeach: 'text' })
+
+const PostsModel = new model('posts', PostsSchema)
+>>>>>>> 707efaa4612be518a68e9d5ecb0ce046ffae94b1
 
 module.exports = PostsModel

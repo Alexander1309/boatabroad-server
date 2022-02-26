@@ -1,8 +1,10 @@
 const router = require('express').Router()
 const Stripe = require('stripe')
 const path = require('path')
+const _ = require('lodash')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
+<<<<<<< HEAD
 const { 
     verifyToken, 
     verifyRoles, 
@@ -13,6 +15,9 @@ const {
     deleteMultiFile,
     getFullPayment
 } = require('../lib/functions')
+=======
+const { verifyToken, verifyRoles, upload, validateUpload, pictureUpload, deleteFileUpload, deleteMultiFile, getDiacriticSensitiveRegex } = require('../lib/functions')
+>>>>>>> 707efaa4612be518a68e9d5ecb0ce046ffae94b1
 require('dotenv').config()
 
 const uploadProfilePicture = upload('profile_picture', 500000, /png|jpg|jpeg/, 'profile_picture', 1)
@@ -23,17 +28,50 @@ router.get('/assets/:folder/:filename', (req, res) => {
     const { folder, filename } = req.params
     const pathFile = path.join(__dirname, '../', 'assets', `${folder}`, `${filename}`)
     res.sendFile(pathFile, (err) => {
-        if(err) res.send('File not Exist').status(200)
+        if(err) res.send('File not Exist')
         else res.status(200)
     })
 })
 
-router.get('/getPosts', async (req, res) => {
-    const posts = await PostsModel.find({ verifiedPost: true }).exec()
+router.get('/posts', async (req, res) => {
+    const {
+        search = '',
+        marinaBeach = '',
+        boatType = '',
+        minimumPrice = 0,
+        startDate,
+        endDate,
+        numberOfSailors = 0,
+    } = req.query
+    const escapedSearch = new RegExp(getDiacriticSensitiveRegex(_.escapeRegExp(search)), 'i')
+    const marinaBeachSearch = new RegExp(getDiacriticSensitiveRegex(_.escapeRegExp(marinaBeach)), 'i')
+    const boatTypeSearch = new RegExp(getDiacriticSensitiveRegex(_.escapeRegExp(boatType)), 'i')
+
+    const options = {
+        verifiedPost: true,
+        numberOfSailors: { $gte: numberOfSailors },
+        marinaBeach: { $regex: marinaBeachSearch },
+        boatType: { $regex: boatTypeSearch },
+        price: { $gte: minimumPrice },
+        $or: [
+            {
+                boatType: { $regex: escapedSearch }
+            },
+            {
+                city: { $regex: escapedSearch }
+            },
+            {
+                marinaBeach: { $regex: escapedSearch }
+            }
+        ],
+        // TODO add startDate and endDate filters
+    }
+
+    const posts = await PostsModel.find(options).exec()
     res.json(posts)
 })
 
-router.get('/getPosts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+router.get('/posts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
     const { id } = req.params
     const post = await PostsModel.findOne({ verifiedPost: true, _id: id })
     const seller = await UsersModel.findOne({ _id: post.idUser })
@@ -43,14 +81,7 @@ router.get('/getPosts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']
     res.json({ ...post._doc, sellerName: seller.name })
 })
 
-router.get('/getPosts/:bType/:mBeach/:cityBoat/:numOfSailors', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
-    const { bType, mBeach, cityBoat, numOfSailors } = req.params
-    const posts = await PostsModel.find({ verifiedPost: true, $or: [{boatType: bType}, {marinaBeach: mBeach}, {city: cityBoat}, {numberOfSailors: JSON.parse(numOfSailors)}]}).exec()
-    if(posts.length > 0) res.json(posts)
-    else res.json({server: 'NoPublication'})
-})
-
-router.put('/uploadProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), validateUpload(uploadProfilePicture), async (req, res) => {
+router.put('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), validateUpload(uploadProfilePicture), async (req, res) => {
     const files = req.files
     const { _id } = req.dataUser
 
@@ -64,12 +95,10 @@ router.put('/uploadProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 
             if(updateProfilePicture.modifiedCount === 1) res.json({sevrer: 'updatedProfilePicture', secure_url})
             else {
                 await deleteFileUpload([public_id])
-                await deleteMultiFile(files)
                 res.json({server: 'updatedNotProfilePicture'})
             }
         } else {
             await deleteFileUpload([public_id])
-            await deleteMultiFile(files)
             res.json({server: 'updatedNotProfilePicture'})
         }
     } else {
@@ -77,13 +106,12 @@ router.put('/uploadProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 
         if(updateProfilePicture.modifiedCount === 1) res.json({sevrer: 'updatedProfilePicture', secure_url})
         else {
             await deleteFileUpload([public_id])
-            await deleteMultiFile(files)
             res.json({server: 'updatedNotProfilePicture'})
         }
     }
 })
 
-router.delete('/deleteProfilePicture', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+router.delete('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
     const { _id } = req.dataUser
 
     const pathImg = await (await UsersModel.findOne({ _id }).exec()).pathPicture

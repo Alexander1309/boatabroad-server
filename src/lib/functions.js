@@ -37,14 +37,14 @@ functions.verifyToken = (req, res, next) => {
         const token = req.headers['authorization'].split(' ')[1]
         if(token !== undefined){
             jwt.verify(token, process.env.JwtSecretKey, (err, data) => {
-                if(err) res.json({server: 'SessionExpired'}).status(403)
+                if(err) res.status(403).json({server: 'SessionExpired'})
                 else {
                     req.dataUser = data.user
                     next()
                 }
             })
         } else {
-            res.json({server: 'SessionExpired'}).status(409)
+            res.status(409).json({server: 'SessionExpired'})
         }
     } catch(e) {
         res.sendStatus(409)
@@ -146,14 +146,15 @@ functions.deleteMultiFile = async paths => {
 
 functions.deleteFileUpload = async publicIds => {
     try {
-        let res = true
-        publicIds.map(async publicId => {
+        for (const publicId of publicIds) {
             const { result } = await uploader.destroy(publicId)
-            if(result === 'ok') res = true
-            else res = false
-        })
-        return res
+            if(result !== 'ok') {
+                return false
+            }
+        }
+        return true
     } catch(e) {
+        console.error('Error deleting file', e)
         return false
     }
 }
@@ -198,6 +199,7 @@ functions.getReservedDays = (startDate, endDate) => {
     return reservedDays
 }
 
+<<<<<<< HEAD
 functions.getFullPayment = (hours, extraHours = 0, price, damage=0, percentage = 1, currency='USD') => {
     const fullPayment = (((hours + extraHours) * price) / percentage) + damage
     const convert = new Intl.NumberFormat('en-US', {
@@ -207,5 +209,14 @@ functions.getFullPayment = (hours, extraHours = 0, price, damage=0, percentage =
 
     return convert.format(fullPayment)
 }
+=======
+functions.getDiacriticSensitiveRegex = (str) =>
+  str
+    .replace(/a/g, "[a,á,à,ä,â]")
+    .replace(/e/g, "[e,é,ë,è]")
+    .replace(/i/g, "[i,í,ï,ì]")
+    .replace(/o/g, "[o,ó,ö,ò]")
+    .replace(/u/g, "[u,ü,ú,ù]");
+>>>>>>> 707efaa4612be518a68e9d5ecb0ce046ffae94b1
 
 module.exports = functions
