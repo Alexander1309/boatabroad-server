@@ -4,7 +4,6 @@ const path = require('path')
 const _ = require('lodash')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
-<<<<<<< HEAD
 const { 
     verifyToken, 
     verifyRoles, 
@@ -13,11 +12,9 @@ const {
     pictureUpload, 
     deleteFileUpload, 
     deleteMultiFile,
-    getFullPayment
+    getFullPayment,
+    getDiacriticSensitiveRegex
 } = require('../lib/functions')
-=======
-const { verifyToken, verifyRoles, upload, validateUpload, pictureUpload, deleteFileUpload, deleteMultiFile, getDiacriticSensitiveRegex } = require('../lib/functions')
->>>>>>> 707efaa4612be518a68e9d5ecb0ce046ffae94b1
 require('dotenv').config()
 
 const uploadProfilePicture = upload('profile_picture', 500000, /png|jpg|jpeg/, 'profile_picture', 1)

@@ -199,7 +199,6 @@ functions.getReservedDays = (startDate, endDate) => {
     return reservedDays
 }
 
-<<<<<<< HEAD
 functions.getFullPayment = (hours, extraHours = 0, price, damage=0, percentage = 1, currency='USD') => {
     const fullPayment = (((hours + extraHours) * price) / percentage) + damage
     const convert = new Intl.NumberFormat('en-US', {
@@ -209,14 +208,13 @@ functions.getFullPayment = (hours, extraHours = 0, price, damage=0, percentage =
 
     return convert.format(fullPayment)
 }
-=======
-functions.getDiacriticSensitiveRegex = (str) =>
+
+functions.getDiacriticSensitiveRegex = str =>
   str
     .replace(/a/g, "[a,á,à,ä,â]")
     .replace(/e/g, "[e,é,ë,è]")
     .replace(/i/g, "[i,í,ï,ì]")
     .replace(/o/g, "[o,ó,ö,ò]")
     .replace(/u/g, "[u,ü,ú,ù]");
->>>>>>> 707efaa4612be518a68e9d5ecb0ce046ffae94b1
 
 module.exports = functions

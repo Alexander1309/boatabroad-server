@@ -31,24 +31,14 @@ const PostsSchema = new Schema({
     beers: { type: Number, required: true },
     hasSodas: { type: Boolean, required: true },
     hasIce: { type: Boolean, required: true },
-<<<<<<< HEAD
     tableWaters: { type: Number, required: true },
+    mineralWaters: { type: Number, required: true },
     statusPost: {
         approved: { type: Boolean, default: false },
         locked: { type: Boolean, default: false },
         rejected: {type: Boolean, default: false},
         published: {type: Boolean, default: false},
     }
-}))
-=======
-    mineralWaters: { type: Number, required: true },
-    verifiedPost: { type: Boolean, default: false },
-    lockedPost: { type: Boolean, default: false }
 })
-
-PostsSchema.index({ city: 'text', boatType: 'text', marinaBeach: 'text' })
-
-const PostsModel = new model('posts', PostsSchema)
->>>>>>> 707efaa4612be518a68e9d5ecb0ce046ffae94b1
 
 module.exports = PostsModel
