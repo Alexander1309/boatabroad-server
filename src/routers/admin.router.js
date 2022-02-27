@@ -8,8 +8,10 @@ router.get('/users', verifyToken, verifyRoles(['Admin']), async (req, res) => {
     res.json(posts)
 })
 
-router.get('/verifiedPosts', verifyToken, verifyRoles(['Admin']), async (req, res) => {
-    const posts = await PostsModel.find({ status: 'approved' }).exec()
+router.get('/posts', verifyToken, verifyRoles(['Admin']), async (req, res) => {
+    const { status } = req.query
+
+    const posts = await PostsModel.find({ status }).exec()
     res.json(posts)
 })
 
