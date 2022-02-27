@@ -45,7 +45,7 @@ router.get('/posts', async (req, res) => {
     const boatTypeSearch = new RegExp(getDiacriticSensitiveRegex(_.escapeRegExp(boatType)), 'i')
 
     const options = {
-        statusPost: { approved: true },
+        status: 'approved',
         numberOfSailors: { $gte: numberOfSailors },
         marinaBeach: { $regex: marinaBeachSearch },
         boatType: { $regex: boatTypeSearch },
@@ -70,7 +70,7 @@ router.get('/posts', async (req, res) => {
 
 router.get('/posts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
     const { id } = req.params
-    const post = await PostsModel.findOne({statusPost: { approved: true } , _id: id })
+    const post = await PostsModel.findOne({status: 'approved', _id: id })
     const seller = await UsersModel.findOne({ _id: post.idUser })
 
     if (!seller) return res.status(404).json({ message: 'Seller not found' })

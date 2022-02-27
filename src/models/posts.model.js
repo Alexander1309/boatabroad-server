@@ -32,12 +32,7 @@ const PostsSchema = new Schema({
     hasSodas: { type: Boolean, required: true },
     hasIce: { type: Boolean, required: true },
     mineralWaters: { type: Number, required: true },
-    statusPost: {
-        approved: { type: Boolean, default: false },
-        locked: { type: Boolean, default: false },
-        rejected: {type: Boolean, default: false},
-        published: {type: Boolean, default: false},
-    }
+    status: { type: String, default: 'pending' }, // pending, approved, rejected
 })
 
 const PostsModel = new model('posts', PostsSchema)
