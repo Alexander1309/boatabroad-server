@@ -13,20 +13,6 @@ router.get('/verifiedPosts', verifyToken, verifyRoles(['Admin']), async (req, re
     res.json(posts)
 })
 
-router.post('/postToBeVerified', async (req, res) => {
-    const {
-        _id,
-        idUser
-    } = req.body
-
-    try {
-        await verifyPost.save()
-        res.json({ server: 'postInVerification'})
-    } catch(e) {
-        res.json({ server: 'postNotInVerification'})
-    }  
-})
-
 router.post('/posts/:idPost/approvals', verifyToken, verifyRoles(['Admin']), async (req, res) => {
     const { idPost } = req.params
     const post = await PostsModel.findOne({_id: idPost}).exec()

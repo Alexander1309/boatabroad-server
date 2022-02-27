@@ -129,9 +129,9 @@ router.delete('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'A
     }
 })
 
-router.post('/makeAReservation', async (req, res) => {
-    const { idPost } = req.body
-    const { price, currency } = await PostsModel.findOne({_id: idPost}).exec()
+router.post('/reservations', async (req, res) => {
+    const { postId } = req.body
+    const { price, currency } = await PostsModel.findOne({_id: postId}).exec()
 
     const fullPayment = getFullPayment(3, 1, price, 0, 1, currency)
     res.json({fullPayment})
