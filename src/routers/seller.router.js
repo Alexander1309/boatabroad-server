@@ -216,18 +216,18 @@ router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUploa
     }
 })
 
-router.delete('/posts/:idPost', verifyToken, verifyRoles(['Seller']), async (req, res) => {
-    const { idPost } = req.params
+router.delete('/posts/:postId', verifyToken, verifyRoles(['Seller']), async (req, res) => {
+    const { postId } = req.params
     const { _id } = req.dataUser
 
-    const post = await PostsModel.findOne({_id: idPost}).exec()
+    const post = await PostsModel.findOne({ _id: postId }).exec()
 
     if(post !== null && post.idUser === _id) {
-        const boatIsReserved = await ReservationsModel.findOne({idPost}).exec()
+        const boatIsReserved = await ReservationsModel.findOne({ postId }).exec()
         if(boatIsReserved === null) {
             const deletedFile = await deleteFileUpload(post.images.map(image => image.path))
             if(deletedFile) {
-                const deletePost = await PostsModel.deleteOne({ _id: idPost }).exec()
+                const deletePost = await PostsModel.deleteOne({ _id: postId }).exec()
             
                 if(deletePost.deletedCount === 1) res.json({server: 'deletedPost'}) 
                 else res.json({server: 'deletedNotPost'})

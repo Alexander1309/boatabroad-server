@@ -1,9 +1,10 @@
 const router = require('express').Router()
-const Stripe = require('stripe')
 const path = require('path')
 const _ = require('lodash')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
+const moment = require('moment')
+const ReservationsModel = require('../models/reservations.model')
 const { 
     verifyToken, 
     verifyRoles, 
@@ -11,15 +12,14 @@ const {
     validateUpload, 
     pictureUpload, 
     deleteFileUpload, 
-    deleteMultiFile,
-    getFullPayment,
-    getDiacriticSensitiveRegex
+    getDiacriticSensitiveRegex,
+    createPaymentMethod,
+    getTotalPrice,
+    performPayment,
 } = require('../lib/functions')
 require('dotenv').config()
 
 const uploadProfilePicture = upload('profile_picture', 500000, /png|jpg|jpeg/, 'profile_picture', 1)
-
-const stripe = new Stripe(process.env.StripeSecretKey)
 
 router.get('/assets/:folder/:filename', (req, res) => {
     const { folder, filename } = req.params
@@ -68,7 +68,7 @@ router.get('/posts', async (req, res) => {
     res.json(posts)
 })
 
-router.get('/posts/:id', verifyToken, verifyRoles(['User', 'Seller', 'Admin']), async (req, res) => {
+router.get('/posts/:id', async (req, res) => {
     const { id } = req.params
     const post = await PostsModel.findOne({status: 'approved', _id: id })
     const seller = await UsersModel.findOne({ _id: post.idUser })
@@ -129,13 +129,40 @@ router.delete('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'A
     }
 })
 
-// En el body debería recibir startDate, hours y paymentMethodId
-router.post('posts/:postId/reservations', async (req, res) => {
-    const { postId } = req.body
-    const { price, currency } = await PostsModel.findOne({_id: postId}).exec()
+router.post('/posts/:postId/reservations', verifyToken, verifyRoles(['User']), async (req, res) => {
+    const { postId } = req.params
+    const { card, startDate, hours } = req.body
+    const user = req.dataUser
+    const post = await PostsModel.findOne({_id: postId}).exec()
+    let paymentMethod
 
-    const fullPayment = getFullPayment(3, 1, price, 0, 1, currency)
-    res.json({fullPayment})
+    // Creates the payment method based on the credit or debit card
+    try {
+        paymentMethod = await createPaymentMethod(card)
+    } catch(error) {
+        res.status(400).json({ error: { message: error.message } })
+    }
+
+    const totalPrice = getTotalPrice(post, hours)
+    const reservation = new ReservationsModel({
+        postId: post._id,
+        userId: user._id,
+        amount: totalPrice,
+        currency: post.currency,
+        startDate,
+        hours,
+        endDate: moment(startDate).add(hours, 'hours').toISOString(),
+    })
+
+    // Creates a payment without confirmation
+    try {
+        await performPayment(user, post, reservation, paymentMethod, totalPrice)
+
+        res.json({ message: 'Payment created' });
+    } catch(error) {
+        console.error(error)
+        res.status(500).json({ error: { message: 'There was an error creating the payment'} })
+    }
 })
 
 module.exports = router

@@ -5,12 +5,14 @@ const { v4: uuid } = require('uuid')
 const path = require('path')
 const fs = require('fs-extra')
 const nodemailer = require('nodemailer')
+const Stripe = require('stripe')
 const { v2: cloudinary } = require('cloudinary')
 const uploader = cloudinary.uploader
 require('dotenv').config()
 const functions = {}
 let memory = []
 
+const stripe = new Stripe(process.env.StripeSecretKey)
 cloudinary.config(process.env.CLOUDINARY_URL);
 
 functions.encryptPassword = async password => {
@@ -209,6 +211,13 @@ functions.getFullPayment = (hours, extraHours = 0, price, damage=0, percentage =
     return convert.format(fullPayment)
 }
 
+functions.getTotalPrice = (boat, hours) => {
+  const basePrice = boat.price * hours;
+  const serviceFee = basePrice * 0.05;
+
+  return basePrice + serviceFee;
+}
+
 functions.getDiacriticSensitiveRegex = str =>
   str
     .replace(/a/g, "[a,á,à,ä,â]")
@@ -216,5 +225,34 @@ functions.getDiacriticSensitiveRegex = str =>
     .replace(/i/g, "[i,í,ï,ì]")
     .replace(/o/g, "[o,ó,ö,ò]")
     .replace(/u/g, "[u,ü,ú,ù]");
+
+functions.createPaymentMethod = async card => {
+    const { number, expiration, cvc } = card
+    const expMonth = +expiration.substring(0, 2)
+    const expYear = Math.floor(new Date().getFullYear() / 100) * 100 + +expiration.substring(2, 4)
+
+    const paymentMethod = await stripe.paymentMethods.create({
+        type: 'card',
+        card: {
+          number,
+          exp_month: expMonth,
+          exp_year: expYear,
+          cvc,
+        },
+      });
+
+      return paymentMethod
+}
+
+functions.performPayment = async (user, post, reservation, paymentMethod, amount) => {
+    await stripe.paymentIntents.create({
+        amount: amount * 100,
+        metadata: { userId: user._id, boatId: post._id, reservationId: reservation._id },
+        currency: post.currency,
+        description: `Rental of boat ${post._id} for $${amount} ${post.currency}`,
+        payment_method: paymentMethod.id,
+        confirm: true,
+      });
+}
 
 module.exports = functions
