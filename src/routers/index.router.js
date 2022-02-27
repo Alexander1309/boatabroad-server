@@ -129,7 +129,8 @@ router.delete('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'A
     }
 })
 
-router.post('/reservations', async (req, res) => {
+// En el body debería recibir startDate, hours y paymentMethodId
+router.post('posts/:postId/reservations', async (req, res) => {
     const { postId } = req.body
     const { price, currency } = await PostsModel.findOne({_id: postId}).exec()
 
