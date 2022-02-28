@@ -1,6 +1,7 @@
 const { model, Schema } = require('mongoose')
 
 const UsersModel = model('users', new Schema({
+    parentUserId: String, // When a user is created by another user, this field is filled with the id of the parent user
     name: { type: String, required: true },
     surname: { type: String, required: true },
     username: { type: String, required: true, unique: true },
@@ -12,7 +13,7 @@ const UsersModel = model('users', new Schema({
     securityCode: { type: String, unique: true },
     emailVerificationCode: { type: String },
     verifyEmail: { type: Boolean, default: false },
-    timer: { type: Number, default: 60 * 1000 }, // Timer para verificar el codigo de seguridad
+    timer: { type: Number, default: 60 * 1000 }, // Timer to verify the security code
 }))
 
 module.exports = UsersModel

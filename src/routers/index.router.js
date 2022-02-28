@@ -149,7 +149,7 @@ router.post('/posts/:postId/reservations', verifyToken, verifyRoles(['User']), a
     const { postId } = req.params
     const { card, startDate, hours } = req.body
     const user = req.dataUser
-    const post = await PostsModel.findOne({_id: postId}).exec()
+    const post = await PostsModel.findOne({_id: postId})
     let paymentMethod
     let customer
 

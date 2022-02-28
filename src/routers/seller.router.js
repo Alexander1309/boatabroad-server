@@ -248,18 +248,20 @@ router.delete('/posts/:postId', verifyToken, verifyRoles(['Seller']), async (req
 
 router.post("/users", verifyToken, verifyRoles(['Seller']), async (req, res) => {
     const { name, surname, username, email, password, role } = req.body
+    const user = req.dataUser
     const emailVerificationCode = `${uuid()}${uuid()}`.replace(/-/g, '').toUpperCase()
     const emailVerificationUrl = `${process.env.ApiUrl}/emailVerifications/${emailVerificationCode}`
     const securityCode = generateCode(6)
     const newUser = new UsersModel({
-      name,
-      surname,
-      username,
-      email,
-      password: await encryptPassword(password),
-      role,
-      emailVerificationCode,
-      securityCode,
+        parentUserId: user._id,
+        name,
+        surname,
+        username,
+        email,
+        password: await encryptPassword(password),
+        role,
+        emailVerificationCode,
+        securityCode,
     })
 
     try {

@@ -244,9 +244,13 @@ functions.createPaymentMethod = async card => {
 }
 
 functions.performPayment = async (user, post, reservation, paymentMethod, customer, amount) => {
+    const metadata = { userId: user._id, postId: `${post._id}`, reservationId: `${reservation._id}` }
+
+    console.log('metadata', metadata)
+    
     await stripe.paymentIntents.create({
         amount: amount * 100,
-        metadata: { userId: user._id, boatId: post._id, reservationId: reservation._id },
+        metadata,
         currency: post.currency,
         description: `Rental of boat ${post._id} for $${amount} ${post.currency}`,
         payment_method: paymentMethod.id,

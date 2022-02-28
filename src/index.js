@@ -11,6 +11,7 @@ const indexRouter = require('./routers/index.router')
 const adminRouter = require('./routers/admin.router')
 const sellerRouter = require('./routers/seller.router')
 const chatRouter = require('./routers/chat.router')
+const captainRouter = require('./routers/captain.router')
 
 const port = process.env.PORT || 3000
 const app = express()
@@ -34,5 +35,6 @@ app.use('/auth/', authRouter)
 app.use('/admin/', adminRouter)
 app.use('/seller/', sellerRouter)
 app.use('/chat/', chatRouter)
+app.use('/captain/', captainRouter)
 
 server.listen(port, () => console.log(`Server run on port ${port}`))
