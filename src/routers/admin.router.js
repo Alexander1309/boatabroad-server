@@ -27,34 +27,47 @@ router.get('/posts/:postId', verifyToken, verifyRoles(['Admin']), async (req, re
     res.json(post)
 })
 
-router.post('/posts/:idPost/approvals', verifyToken, verifyRoles(['Admin']), async (req, res) => {
-    const { idPost } = req.params
-    const post = await PostsModel.findOne({_id: idPost}).exec()
+router.post('/posts/:postId/approvals', verifyToken, verifyRoles(['Admin']), async (req, res) => {
+    const { postId } = req.params
+    const post = await PostsModel.findById(postId)
 
-    if(post !== null) {
-        const updatePost = await PostsModel.updateOne({ _id: post.idPost }, { status: 'approved'}).exec()
-        
-        if(updatePost.modifiedCount === 1) {
-            const user = await UsersModel.findOne({_id: post.idUser}).exec()
-            await sendEmail(user.email, 'Publicacion verificada', 'La publicasion a sido aprobada', `<h1>Holaaaa</h1>`)
-            res.json({server: 'updatedPost'})
-        } else res.json({server: 'postNotUpdated'})
-    } else res.json({server: 'postNotExist'})
+    if (!post) {
+        return res.status(404).json({ error: { message: 'The post was not found' } })
+    }
+
+    if (post.status !== 'pending') {
+        return res.status(409).json({ error: { message: 'This post is no longer under review' } })
+    }
+
+    const updatedPost = await PostsModel.updateOne({ _id: postId }, { status: 'approved', rejectionReason: null })
+
+    if (updatedPost.modifiedCount === 1) {
+        const user = await UsersModel.findOne({ _id: post.idUser })
+        await sendEmail(user.email, 'Publicación verificada', 'La publicación a sido aprobada. Ahora es públicamente visible.')
+        res.json({ server: 'postUpdated' })
+    } else res.status(500).json({ server: 'postNotUpdated' })
 })
 
-router.put('/posts/:idPost/rejections', verifyToken, verifyRoles(['Admin']), async (req, res) => {
-    const { idPost } = req.params
-    const { isRejected } = req.body
-    const post = await PostsModel.findOne({_id: idPost}).exec()
-    if(post !== null) {
-        const updatePost = await PostsModel.updateOne({ _id: idPost }, { status: 'rejected'}).exec()
-        
-        if(updatePost.modifiedCount === 1) {
-            const user = await UsersModel.findOne({_id: post.idUser}).exec()
-            await sendEmail(user.email, 'Publicacion Bloqueada', 'La publicasion a sido bloqueada por incumplir reglas', `<h1>Holaaaa</h1>`)
-            res.json({server: 'updatedPost'})
-        } else res.json({server: 'postNotUpdated'})
-    } else res.json({server: 'postNotExist'})
+router.post('/posts/:postId/rejections', verifyToken, verifyRoles(['Admin']), async (req, res) => {
+    const { postId } = req.params
+    const { reason } = req.body
+    const post = await PostsModel.findById(postId)
+
+    if (!post) {
+        return res.status(404).json({ error: { message: 'The post was not found' } })
+    }
+
+    if (post.status !== 'pending') {
+        return res.status(409).json({ error: { message: 'This post is no longer under review' } })
+    }
+
+    const updatedPost = await PostsModel.updateOne({ _id: postId }, { status: 'rejected', rejectionReason: reason })
+
+    if(updatedPost.modifiedCount === 1) {
+        const user = await UsersModel.findOne({_id: post.idUser}).exec()
+        await sendEmail(user.email, 'Publicación rechazada', `La publicación a sido rechazada por incumplir reglas. Este es el motivo de rechazo: \n\n${reason}`)
+        res.json({server: 'updatedPost'})
+    } else res.json({server: 'postNotUpdated'})
 })
 
 module.exports = router
