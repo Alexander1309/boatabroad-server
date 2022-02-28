@@ -104,6 +104,7 @@ router.post('/posts', verifyToken, verifyRoles(['Seller']), validateUpload(uploa
             await sendEmail(admin.email, 'New Post From Boatabroad', msgNewPost(newPost._id))
         })
         await newPost.save()
+        req.io.emit('newPost', newPost)
         res.json({ server: 'postCreated'})
     } catch(e) {
         console.error(e);

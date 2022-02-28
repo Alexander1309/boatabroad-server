@@ -25,6 +25,7 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.4",
     "nodemailer": "^6.7.2",
+    "socket.io": "^4.4.1",
     "stripe": "^8.202.0",
     "uuid": "^8.3.2"
   },

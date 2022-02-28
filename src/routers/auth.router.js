@@ -1,5 +1,6 @@
 const router = require("express").Router()
 const UsersModel = require("../models/users.model")
+const { msgSecurityCode } = require('../lib/msg')
 const jwt = require("jsonwebtoken")
 const {
   encryptPassword,
@@ -42,12 +43,12 @@ router.post("/signUp", async (req, res) => {
   })
 
   try {
-    await sendEmail(
-      email,
-      "Verify Email",
-      `<label>Security Code</label><input type="text" value="${securityCode}" />`
-    )
     await newUser.save()
+    await sendEmail(
+      email, 
+      "Verify Email", 
+      msgSecurityCode(name, 'Welcome to Boatabroad! In order to get started, you need to confirm your email address.', securityCode)
+    )
     res.json({ server: "userRegister" })
   } catch (e) {
     res.json({ server: "userNotRegister" })
@@ -82,7 +83,7 @@ router.post("/securityCode", async (req, res) => {
       await sendEmail(
         email,
         "Reset Password Code",
-        `<label>Security Code</label><input type="text" value="${securityCode}" />`
+        msgSecurityCode(user.name, 'Reset password process. For security reasons, we do NOT store your password. So rest assured that we will never send your password via email.', securityCode)
       )
       const updateSecurityCode = await UsersModel.updateOne(
         { email },

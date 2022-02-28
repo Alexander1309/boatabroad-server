@@ -3,6 +3,7 @@ const path = require('path')
 const _ = require('lodash')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
+const { sendEmail } = require('../lib/functions')
 const moment = require('moment')
 const { v4: uuid } = require('uuid')
 const ReservationsModel = require('../models/reservations.model')
@@ -176,70 +177,56 @@ router.post('/posts/:postId/reservations', verifyToken, verifyRoles(['User']), a
     try {
         await performPayment(user, post, reservation, paymentMethod, customer, totalPrice)
 
-        res.json({ message: 'Payment created' });
+        res.json({ message: 'Payment created' })
     } catch(error) {
         console.error(error)
         res.status(500).json({ error: { message: 'There was an error creating the payment'} })
     }
 })
 
-router.post('/paymentEvents', (req, res) => {
-    const sig = req.headers['stripe-signature'];
-    console.log(req.body)
-
-    let event;
-  
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-    } catch (err) {
-      res.status(400).send(`Webhook Error: ${err.message}`);
-      return;
-    }
-  
-    // Handle the event
+router.post('/paymentEvents', async (req, res) => {
+    const event = req.body
+    let paymentIntent
+    
     switch (event.type) {
-      case 'payment_intent.amount_capturable_updated': {
-          const paymentIntent = event.data.object;
-          // Then define and call a function to handle the event payment_intent.amount_capturable_updated
-          break;
-      }
-      case 'payment_intent.canceled': {
-          const paymentIntent = event.data.object;
-          // Then define and call a function to handle the event payment_intent.canceled
-          break;
-      }
-      case 'payment_intent.created': {
-          const paymentIntent = event.data.object;
-          // Then define and call a function to handle the event payment_intent.created
-          break;
-      }
-      case 'payment_intent.payment_failed': {
-          const paymentIntent = event.data.object;
-          // Then define and call a function to handle the event payment_intent.payment_failed
-      }
-        break;
-      case 'payment_intent.processing': {
-          const paymentIntent = event.data.object;
-          // Then define and call a function to handle the event payment_intent.processing
-          break;
-      }
-      case 'payment_intent.requires_action': {
-          const paymentIntent = event.data.object;
-          // Then define and call a function to handle the event payment_intent.requires_action
-          break;
-      }
-      case 'payment_intent.succeeded': {
-          const paymentIntent = event.data.object;
-          // Then define and call a function to handle the event payment_intent.succeeded
-          break;
-      }
-      // ... handle other event types
-      default:
-        console.log(`Unhandled event type ${event.type}`);
+        case 'payment_intent.succeeded': {
+            paymentIntent = event.data.object
+            const idUser = paymentIntent.metadata.userId
+            const idPost = paymentIntent.metadata. postId
+            console.log('id user', idUser)
+            console.log('id post', idPost)
+            const user_email = (await UsersModel.findOne({_id: idUser}).exec()).email
+            const user_id = (await PostsModel.findOne({_id: idPost}).exec()).idUser
+            
+            console.log(user_email, user_id)
+            
+            if(user_email !== null && user_id !== null) {
+                const emailCreate = (await UsersModel.findOne({_id: user_id}).exec()).email
+                if(emailCreate !== null) {
+                    await sendEmail(user_email, 'Pago realizado con exito', '<h1>Holaa</h1>')
+                    await sendEmail(emailCreate, 'Pago realizado con exito', '<h1>Holaa</h1>')
+                }
+            }
+            break
+        }
+        
+        case 'payment_intent.canceled': {
+            paymentIntent = event.data.object
+            
+            break
+        }
+        
+        case 'payment_intent.payment_failed': {
+            paymentIntent = event.data.object
+
+            break
+        }
+
+        default:
+            console.log(`Unhandled event type ${event.type}`)
     }
   
-    // Return a 200 res to acknowledge receipt of the event
-    res.send();
+    res.send()
 })
 
 module.exports = router
