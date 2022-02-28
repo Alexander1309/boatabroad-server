@@ -80,7 +80,7 @@ msg.postRejected = (post, reason) => {
     return`<!DOCTYPE html>
 <html lang="en">
     <body>
-        <h1>Boat updated</h1>
+        <h1>Post rejected</h1>
         The post '${post.title}' has been rejected since it does not meet the requirements.<br><br> This is the reason:<br><br><i><b>${reason}</b></i><br><br> In order to modify the post, click on the link below.
         <br>
         <a href="${editPostUrl}">${editPostUrl}</a>
