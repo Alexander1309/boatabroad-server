@@ -5,14 +5,13 @@ const { v4: uuid } = require('uuid')
 const path = require('path')
 const fs = require('fs-extra')
 const nodemailer = require('nodemailer')
-const Stripe = require('stripe')
 const { v2: cloudinary } = require('cloudinary')
+const { stripe } = require('../utils/stripe')
 const uploader = cloudinary.uploader
 require('dotenv').config()
 const functions = {}
 let memory = []
 
-const stripe = new Stripe(process.env.StripeSecretKey)
 cloudinary.config(process.env.CLOUDINARY_URL);
 
 functions.encryptPassword = async password => {
@@ -244,13 +243,16 @@ functions.createPaymentMethod = async card => {
       return paymentMethod
 }
 
-functions.performPayment = async (user, post, reservation, paymentMethod, amount) => {
+functions.performPayment = async (user, post, reservation, paymentMethod, customer, amount) => {
+    console.log('paymentMethod', paymentMethod.id)
     await stripe.paymentIntents.create({
         amount: amount * 100,
         metadata: { userId: user._id, boatId: post._id, reservationId: reservation._id },
         currency: post.currency,
         description: `Rental of boat ${post._id} for $${amount} ${post.currency}`,
         payment_method: paymentMethod.id,
+        customer: customer.id,
+        setup_future_usage: 'off_session',
         confirm: true,
       });
 }

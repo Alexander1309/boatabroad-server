@@ -9,7 +9,9 @@ const ReservationsModel = model('reservations', new Schema({
     hours: { type: Number, default: 0 },
     endDate: { type: Date, required: true },
     extraHours: { type: Number, required: true },
-    processingPayment: { type: Boolean, default: true }
+    processingPayment: { type: Boolean, default: true },
+    paymentMethodId: String,
+    customerId: String,
 }))
 
 module.exports = ReservationsModel

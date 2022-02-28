@@ -4,6 +4,7 @@ const _ = require('lodash')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
 const moment = require('moment')
+const { v4: uuid } = require('uuid')
 const ReservationsModel = require('../models/reservations.model')
 const { 
     verifyToken, 
@@ -17,6 +18,7 @@ const {
     getTotalPrice,
     performPayment,
 } = require('../lib/functions')
+const { stripe } = require('../utils/stripe')
 require('dotenv').config()
 
 const uploadProfilePicture = upload('profile_picture', 500000, /png|jpg|jpeg/, 'profile_picture', 1)
@@ -135,13 +137,25 @@ router.post('/posts/:postId/reservations', verifyToken, verifyRoles(['User']), a
     const user = req.dataUser
     const post = await PostsModel.findOne({_id: postId}).exec()
     let paymentMethod
+    let customer
 
     // Creates the payment method based on the credit or debit card
     try {
         paymentMethod = await createPaymentMethod(card)
     } catch(error) {
-        res.status(400).json({ error: { message: error.message } })
+        console.error(error)
+        return res.status(400).json({ error: { message: error.message } })
     }
+
+    try {
+        customer = await stripe.customers.create({
+            payment_method: paymentMethod.id
+        })
+    } catch(error) {
+        console.error(error)
+        return res.status(500).json({ error: { message: 'There was an error setting up the payment' } })
+    }
+
 
     const totalPrice = getTotalPrice(post, hours)
     const reservation = new ReservationsModel({
@@ -152,11 +166,13 @@ router.post('/posts/:postId/reservations', verifyToken, verifyRoles(['User']), a
         startDate,
         hours,
         endDate: moment(startDate).add(hours, 'hours').toISOString(),
+        paymentMethodId: paymentMethod.id,
+        customerId: customer.id,
     })
 
     // Creates a payment without confirmation
     try {
-        await performPayment(user, post, reservation, paymentMethod, totalPrice)
+        await performPayment(user, post, reservation, paymentMethod, customer, totalPrice)
 
         res.json({ message: 'Payment created' });
     } catch(error) {
