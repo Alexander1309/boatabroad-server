@@ -153,4 +153,42 @@ msg.msgSecurityCode = (name, text, code) =>`
 </html>
 `
 
+msg.postUpdated = (user, post) => {
+    const reviewUrl = `${process.env.WEB_URL}/dashboard/boatReview?id=${encodeURIComponent(post._id)}`
+    return`<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <h1>Boat updated</h1>
+        The post '${post.title}' has been updated by ${user.name} ${user.surname}. In order to verify the changes, click on the link below.
+        <a href="${reviewUrl}">${reviewUrl}</a>
+    </body>
+</html>`
+}
+
+msg.postApproved = (post) => {
+    const postUrl = `${process.env.WEB_URL}/search/details?id=${encodeURIComponent(post._id)}`
+    return`<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <h1>Post approved</h1>
+        The post '${post.title}' has been approved.<br><br> Now it's publicly available in the following link:
+        <br>
+        <a href="${postUrl}">${postUrl}</a>
+    </body>
+</html>`
+}
+
+msg.postRejected = (post, reason) => {
+    const editPostUrl = `${process.env.WEB_URL}/dashboard/boatForm?boatId=${encodeURIComponent(post._id)}`
+    return`<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <h1>Post rejected</h1>
+        The post '${post.title}' has been rejected since it does not meet the requirements.<br><br> This is the reason:<br><br><i><b>${reason}</b></i><br><br> In order to modify the post, click on the link below.
+        <br>
+        <a href="${editPostUrl}">${editPostUrl}</a>
+    </body>
+</html>`
+}
+
 module.exports = msg

@@ -31,16 +31,21 @@ router.post('/signIn', async (req, res) => {
 })
 
 router.post("/signUp", async (req, res) => {
-  const { name, username, email, password, role } = req.body
+  const { name, surname, username, email, password, role } = req.body
   const securityCode = generateCode(6)
   const newUser = new UsersModel({
     name,
+    surname,
     username,
     email,
     password: await encryptPassword(password),
     role,
     securityCode,
   })
+
+  if (!['Seller', 'User'].includes(role)) {
+    return res.status(400).json({ error: { message: `Invalid role '${role}'` } })
+  }
 
   try {
     await newUser.save()
@@ -51,6 +56,7 @@ router.post("/signUp", async (req, res) => {
     )
     res.json({ server: "userRegister" })
   } catch (e) {
+    console.error(e)
     res.json({ server: "userNotRegister" })
   }
 })

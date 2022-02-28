@@ -1,9 +1,10 @@
 const router = require('express').Router()
+const { v4: uuid } = require('uuid')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
 const ReservationsModel = require('../models/reservations.model')
-const { pictureUpload, deleteFileUpload, deleteOneFile, upload, validateUpload, verifyToken, verifyRoles, sendEmail } = require('../lib/functions')
-const { msgNewPost } = require('../lib/msg')
+const { pictureUpload, deleteFileUpload, upload, validateUpload, verifyToken, verifyRoles, sendEmail, generateCode, encryptPassword } = require('../lib/functions')
+const { msgNewPost, postUpdated } = require('../lib/msg')
 
 const uploadImgPost = upload('img', 500000, /png|jpg|jpeg/, 'posts_picture', 7)
 
@@ -17,7 +18,7 @@ router.get('/posts/:id', verifyToken, verifyRoles(['Seller']), async (req, res) 
     const { id } = req.params
     const post = await PostsModel.findOne({ _id: id })
 
-    if (!post) return res.status(404).json({ message: 'Seller not found' })
+    if (!post) return res.status(404).json({ message: 'Post not found' })
 
     res.json(post)
 })
@@ -115,7 +116,7 @@ router.post('/posts', verifyToken, verifyRoles(['Seller']), validateUpload(uploa
 
 router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUpload(uploadImgPost), async (req, res) => {
     const { idPost } = req.params
-    const { _id } = req.dataUser
+    const user = req.dataUser
     const files = req.files
     const updatedImages = []
 
@@ -157,8 +158,8 @@ router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUploa
         existingImageUrls = [],
     } = req.body
 
-    const post = await PostsModel.findOne({_id: idPost}).exec()
-    if(post !== null && post.idUser === _id) {
+    const post = await PostsModel.findOne({ _id: idPost }).exec()
+    if(post !== null && post.idUser === user._id) {
         const pathsToDelete = post.images.filter(image => !existingImageUrls.includes(image.url)).map(image => image.path)
         console.log('deleting files', pathsToDelete)
         const filesDeleted = await deleteFileUpload(pathsToDelete)
@@ -167,7 +168,7 @@ router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUploa
 
         if(filesDeleted) {
             try {
-                await PostsModel.updateOne({ _id: idPost }, {
+                const updated = await PostsModel.updateOne({ _id: idPost }, {
                     title,
                     subtitle,
                     shortDescription,
@@ -197,12 +198,20 @@ router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUploa
                     beers: parseInt(beers),
                     hasSodas,
                     hasIce,
-                    mineralWaters: parseInt(mineralWaters)
-                }).exec()
+                    mineralWaters: parseInt(mineralWaters),
+                    status: 'pending',
+                })
+
+                if (updated.modifiedCount === 1 && post.status !== 'pending') {
+                    const admins = await UsersModel.find({ role: 'Admin' })
+                    admins.forEach(admin => {
+                        sendEmail(admin.email, 'Boat updated', postUpdated(user, post))
+                    })
+                }
             } catch(error) {
                 console.error(error)
                 await deleteFileUpload(updatedImages.map(image => image.path))
-                res.status(500).json({ server: 'postNotUpdated'})
+                return res.status(500).json({ server: 'postNotUpdated'})
             }
 
             res.json({server: 'postUpdated'})
@@ -236,5 +245,34 @@ router.delete('/posts/:postId', verifyToken, verifyRoles(['Seller']), async (req
         } else res.json({server: 'postIsReservedItCannotBeDeleted'})
     } else res.json({server: 'postNotExist'})
 })
+
+router.post("/users", verifyToken, verifyRoles(['Seller']), async (req, res) => {
+    const { name, surname, username, email, password, role } = req.body
+    const emailVerificationCode = `${uuid()}${uuid()}`.replace(/-/g, '').toUpperCase()
+    const emailVerificationUrl = `${process.env.ApiUrl}/emailVerifications/${emailVerificationCode}`
+    const securityCode = generateCode(6)
+    const newUser = new UsersModel({
+      name,
+      surname,
+      username,
+      email,
+      password: await encryptPassword(password),
+      role,
+      emailVerificationCode,
+      securityCode,
+    })
+
+    try {
+      await sendEmail(
+        email,
+        "Verify Email",
+        `<label>Verify your email by going to this URL: </label> <a href="${emailVerificationUrl}">${emailVerificationUrl}</a>`
+      )
+      await newUser.save()
+      res.json({ server: "userCreated" })
+    } catch (e) {
+      res.json({ server: "userNotCreated" })
+    }
+  })
 
 module.exports= router

@@ -33,8 +33,9 @@ const PostsSchema = new Schema({
     hasIce: { type: Boolean, required: true },
     mineralWaters: { type: Number, required: true },
     status: { type: String, default: 'pending' }, // pending, approved, rejected
+    rejectionReason: String,
 })
 
-const PostsModel = new model('posts', PostsSchema)
+const PostsModel = model('posts', PostsSchema)
 
 module.exports = PostsModel

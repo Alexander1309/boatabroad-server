@@ -73,7 +73,7 @@ router.get('/posts', async (req, res) => {
 
 router.get('/posts/:id', async (req, res) => {
     const { id } = req.params
-    const post = await PostsModel.findOne({status: 'approved', _id: id })
+    const post = await PostsModel.findById(id)
     const seller = await UsersModel.findOne({ _id: post.idUser })
 
     if (!seller) return res.status(404).json({ message: 'Seller not found' })
@@ -129,6 +129,19 @@ router.delete('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'A
         }
     } else {
         res.json({server: 'deletedNotProfilePicture'})
+    }
+})
+
+router.get('/emailVerifications/:emailVerificationCode', async (req, res) => {
+    const { emailVerificationCode } = req.params
+
+    try {
+        const updateResult = await UsersModel.updateOne({ emailVerificationCode }, { verifyEmail: true })
+        const confirmationStatus = updateResult.modifiedCount === 1 ? 'ok' : 'alreadyVerified'
+
+        res.redirect(`${process.env.WEB_URL}/login?emailConfirmationStatus=${confirmationStatus}`)
+    } catch(error) {
+       res.status(500).json({ error: { message: 'There was an error verifying the email address.' } })
     }
 })
 
