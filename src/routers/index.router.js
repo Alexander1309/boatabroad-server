@@ -183,4 +183,56 @@ router.post('/posts/:postId/reservations', verifyToken, verifyRoles(['User']), a
     }
 })
 
+router.post('/paymentEvents', (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    console.log(req.body)
+
+    let event;
+  
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } catch (err) {
+      res.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+  
+    // Handle the event
+    switch (event.type) {
+      case 'payment_intent.amount_capturable_updated':
+        const paymentIntent = event.data.object;
+        // Then define and call a function to handle the event payment_intent.amount_capturable_updated
+        break;
+      case 'payment_intent.canceled':
+        const paymentIntent = event.data.object;
+        // Then define and call a function to handle the event payment_intent.canceled
+        break;
+      case 'payment_intent.created':
+        const paymentIntent = event.data.object;
+        // Then define and call a function to handle the event payment_intent.created
+        break;
+      case 'payment_intent.payment_failed':
+        const paymentIntent = event.data.object;
+        // Then define and call a function to handle the event payment_intent.payment_failed
+        break;
+      case 'payment_intent.processing':
+        const paymentIntent = event.data.object;
+        // Then define and call a function to handle the event payment_intent.processing
+        break;
+      case 'payment_intent.requires_action':
+        const paymentIntent = event.data.object;
+        // Then define and call a function to handle the event payment_intent.requires_action
+        break;
+      case 'payment_intent.succeeded':
+        const paymentIntent = event.data.object;
+        // Then define and call a function to handle the event payment_intent.succeeded
+        break;
+      // ... handle other event types
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
+  
+    // Return a 200 res to acknowledge receipt of the event
+    res.send();
+})
+
 module.exports = router
