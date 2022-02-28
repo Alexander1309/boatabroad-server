@@ -4,7 +4,7 @@ const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
 const ReservationsModel = require('../models/reservations.model')
 const { pictureUpload, deleteFileUpload, upload, validateUpload, verifyToken, verifyRoles, sendEmail, generateCode, encryptPassword } = require('../lib/functions')
-const { msgNewPost } = require('../lib/msg')
+const { msgNewPost, postUpdated } = require('../lib/msg')
 
 const uploadImgPost = upload('img', 500000, /png|jpg|jpeg/, 'posts_picture', 7)
 
@@ -115,7 +115,7 @@ router.post('/posts', verifyToken, verifyRoles(['Seller']), validateUpload(uploa
 
 router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUpload(uploadImgPost), async (req, res) => {
     const { idPost } = req.params
-    const { _id } = req.dataUser
+    const user = req.dataUser
     const files = req.files
     const updatedImages = []
 
@@ -157,8 +157,8 @@ router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUploa
         existingImageUrls = [],
     } = req.body
 
-    const post = await PostsModel.findOne({_id: idPost}).exec()
-    if(post !== null && post.idUser === _id) {
+    const post = await PostsModel.findOne({ _id: idPost }).exec()
+    if(post !== null && post.idUser === user._id) {
         const pathsToDelete = post.images.filter(image => !existingImageUrls.includes(image.url)).map(image => image.path)
         console.log('deleting files', pathsToDelete)
         const filesDeleted = await deleteFileUpload(pathsToDelete)
@@ -167,7 +167,7 @@ router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUploa
 
         if(filesDeleted) {
             try {
-                await PostsModel.updateOne({ _id: idPost }, {
+                const updated = await PostsModel.updateOne({ _id: idPost }, {
                     title,
                     subtitle,
                     shortDescription,
@@ -197,12 +197,20 @@ router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUploa
                     beers: parseInt(beers),
                     hasSodas,
                     hasIce,
-                    mineralWaters: parseInt(mineralWaters)
-                }).exec()
+                    mineralWaters: parseInt(mineralWaters),
+                    status: 'pending',
+                })
+
+                if (updated.modifiedCount === 1) {
+                    const admins = await UsersModel.find({ role: 'Admin' })
+                    admins.forEach(admin => {
+                        sendEmail(admin.email, 'Boat updated', postUpdated(user, post))
+                    })
+                }
             } catch(error) {
                 console.error(error)
                 await deleteFileUpload(updatedImages.map(image => image.path))
-                res.status(500).json({ server: 'postNotUpdated'})
+                return res.status(500).json({ server: 'postNotUpdated'})
             }
 
             res.json({server: 'postUpdated'})

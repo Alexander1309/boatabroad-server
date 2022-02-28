@@ -62,4 +62,17 @@ msg.msgNewPost = id => `<!DOCTYPE html>
 </html>
 `
 
+
+msg.postUpdated = (user, post) => {
+    const reviewUrl = `${process.env.WEB_URL}/dashboard/boatReview?id=${encodeURIComponent(post._id)}`
+    return`<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <h1>Boat updated</h1>
+        The post '${post.title}' has been updated by ${user.name} ${user.surname}. In order to verify the changes, please click on the link below.
+        <a href="${reviewUrl}">${reviewUrl}</a>
+    </body>
+</html>`
+}
+
 module.exports = msg
