@@ -72,7 +72,7 @@ router.get('/posts', async (req, res) => {
 
 router.get('/posts/:id', async (req, res) => {
     const { id } = req.params
-    const post = await PostsModel.findOne({status: 'approved', _id: id })
+    const post = await PostsModel.findById(id)
     const seller = await UsersModel.findOne({ _id: post.idUser })
 
     if (!seller) return res.status(404).json({ message: 'Seller not found' })

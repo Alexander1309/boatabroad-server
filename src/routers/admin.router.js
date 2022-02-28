@@ -15,18 +15,6 @@ router.get('/posts', verifyToken, verifyRoles(['Admin']), async (req, res) => {
     res.json(posts)
 })
 
-router.get('/posts/:postId', verifyToken, verifyRoles(['Admin']), async (req, res) => {
-    const { postId } = req.params
-
-    const post = await PostsModel.findById(postId)
-
-    if (!post) {
-        return res.status(400).json({ error: { message: 'Post not found' } })
-    }
-
-    res.json(post)
-})
-
 router.post('/posts/:postId/approvals', verifyToken, verifyRoles(['Admin']), async (req, res) => {
     const { postId } = req.params
     const post = await PostsModel.findById(postId)
