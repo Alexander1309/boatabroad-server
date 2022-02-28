@@ -244,7 +244,6 @@ functions.createPaymentMethod = async card => {
 }
 
 functions.performPayment = async (user, post, reservation, paymentMethod, customer, amount) => {
-    console.log('paymentMethod', paymentMethod.id)
     await stripe.paymentIntents.create({
         amount: amount * 100,
         metadata: { userId: user._id, boatId: post._id, reservationId: reservation._id },

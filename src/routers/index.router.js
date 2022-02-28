@@ -170,6 +170,8 @@ router.post('/posts/:postId/reservations', verifyToken, verifyRoles(['User']), a
         customerId: customer.id,
     })
 
+    await reservation.save()
+
     // Creates a payment without confirmation
     try {
         await performPayment(user, post, reservation, paymentMethod, customer, totalPrice)
