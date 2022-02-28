@@ -35,6 +35,6 @@ const PostsSchema = new Schema({
     status: { type: String, default: 'pending' }, // pending, approved, rejected
 })
 
-const PostsModel = new model('posts', PostsSchema)
+const PostsModel = model('posts', PostsSchema)
 
 module.exports = PostsModel

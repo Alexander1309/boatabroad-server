@@ -17,7 +17,7 @@ router.get('/posts/:id', verifyToken, verifyRoles(['Seller']), async (req, res) 
     const { id } = req.params
     const post = await PostsModel.findOne({ _id: id })
 
-    if (!post) return res.status(404).json({ message: 'Seller not found' })
+    if (!post) return res.status(404).json({ message: 'Post not found' })
 
     res.json(post)
 })
