@@ -201,7 +201,7 @@ router.put('/posts/:idPost', verifyToken, verifyRoles(['Seller']), validateUploa
                     status: 'pending',
                 })
 
-                if (updated.modifiedCount === 1) {
+                if (updated.modifiedCount === 1 && post.status !== 'pending') {
                     const admins = await UsersModel.find({ role: 'Admin' })
                     admins.forEach(admin => {
                         sendEmail(admin.email, 'Boat updated', postUpdated(user, post))
