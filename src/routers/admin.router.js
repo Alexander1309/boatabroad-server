@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const { verifyToken, verifyRoles, sendEmail } = require('../lib/functions')
-const { postRejected } = require('../lib/msg')
+const { postRejected, postApproved } = require('../lib/msg')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
 
@@ -32,7 +32,7 @@ router.post('/posts/:postId/approvals', verifyToken, verifyRoles(['Admin']), asy
 
     if (updatedPost.modifiedCount === 1) {
         const user = await UsersModel.findOne({ _id: post.idUser })
-        await sendEmail(user.email, 'Publicación verificada', 'La publicación a sido aprobada. Ahora es públicamente visible.')
+        await sendEmail(user.email, 'Post approved', postApproved(post))
         res.json({ server: 'postUpdated' })
     } else res.status(500).json({ server: 'postNotUpdated' })
 })

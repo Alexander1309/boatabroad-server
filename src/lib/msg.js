@@ -75,6 +75,19 @@ msg.postUpdated = (user, post) => {
 </html>`
 }
 
+msg.postApproved = (post) => {
+    const postUrl = `${process.env.WEB_URL}/search/details?id=${encodeURIComponent(post._id)}`
+    return`<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <h1>Post approved</h1>
+        The post '${post.title}' has been approved.<br><br> Now it's publicly available in the following link:
+        <br>
+        <a href="${postUrl}">${postUrl}</a>
+    </body>
+</html>`
+}
+
 msg.postRejected = (post, reason) => {
     const editPostUrl = `${process.env.WEB_URL}/dashboard/boatForm?boatId=${encodeURIComponent(post._id)}`
     return`<!DOCTYPE html>
