@@ -69,8 +69,21 @@ msg.postUpdated = (user, post) => {
 <html lang="en">
     <body>
         <h1>Boat updated</h1>
-        The post '${post.title}' has been updated by ${user.name} ${user.surname}. In order to verify the changes, please click on the link below.
+        The post '${post.title}' has been updated by ${user.name} ${user.surname}. In order to verify the changes, click on the link below.
         <a href="${reviewUrl}">${reviewUrl}</a>
+    </body>
+</html>`
+}
+
+msg.postRejected = (post, reason) => {
+    const editPostUrl = `${process.env.WEB_URL}/dashboard/boatForm?boatId=${encodeURIComponent(post._id)}`
+    return`<!DOCTYPE html>
+<html lang="en">
+    <body>
+        <h1>Boat updated</h1>
+        The post '${post.title}' has been rejected since it does not meet the requirements.<br><br> This is the reason:<br><br><i><b>${reason}</b></i><br><br> In order to modify the post, click on the link below.
+        <br>
+        <a href="${editPostUrl}">${editPostUrl}</a>
     </body>
 </html>`
 }

@@ -1,5 +1,6 @@
 const router = require('express').Router()
 const { verifyToken, verifyRoles, sendEmail } = require('../lib/functions')
+const { postRejected } = require('../lib/msg')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
 
@@ -53,7 +54,7 @@ router.post('/posts/:postId/rejections', verifyToken, verifyRoles(['Admin']), as
 
     if(updatedPost.modifiedCount === 1) {
         const user = await UsersModel.findOne({_id: post.idUser}).exec()
-        await sendEmail(user.email, 'Publicación rechazada', `La publicación a sido rechazada por incumplir reglas. Este es el motivo de rechazo: \n\n${reason}`)
+        await sendEmail(user.email, 'Post rejected', postRejected(post, reason))
         res.json({server: 'updatedPost'})
     } else res.json({server: 'postNotUpdated'})
 })
