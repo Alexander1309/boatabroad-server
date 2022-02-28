@@ -198,34 +198,41 @@ router.post('/paymentEvents', (req, res) => {
   
     // Handle the event
     switch (event.type) {
-      case 'payment_intent.amount_capturable_updated':
-        const paymentIntent = event.data.object;
-        // Then define and call a function to handle the event payment_intent.amount_capturable_updated
+      case 'payment_intent.amount_capturable_updated': {
+          const paymentIntent = event.data.object;
+          // Then define and call a function to handle the event payment_intent.amount_capturable_updated
+          break;
+      }
+      case 'payment_intent.canceled': {
+          const paymentIntent = event.data.object;
+          // Then define and call a function to handle the event payment_intent.canceled
+          break;
+      }
+      case 'payment_intent.created': {
+          const paymentIntent = event.data.object;
+          // Then define and call a function to handle the event payment_intent.created
+          break;
+      }
+      case 'payment_intent.payment_failed': {
+          const paymentIntent = event.data.object;
+          // Then define and call a function to handle the event payment_intent.payment_failed
+      }
         break;
-      case 'payment_intent.canceled':
-        const paymentIntent = event.data.object;
-        // Then define and call a function to handle the event payment_intent.canceled
-        break;
-      case 'payment_intent.created':
-        const paymentIntent = event.data.object;
-        // Then define and call a function to handle the event payment_intent.created
-        break;
-      case 'payment_intent.payment_failed':
-        const paymentIntent = event.data.object;
-        // Then define and call a function to handle the event payment_intent.payment_failed
-        break;
-      case 'payment_intent.processing':
-        const paymentIntent = event.data.object;
-        // Then define and call a function to handle the event payment_intent.processing
-        break;
-      case 'payment_intent.requires_action':
-        const paymentIntent = event.data.object;
-        // Then define and call a function to handle the event payment_intent.requires_action
-        break;
-      case 'payment_intent.succeeded':
-        const paymentIntent = event.data.object;
-        // Then define and call a function to handle the event payment_intent.succeeded
-        break;
+      case 'payment_intent.processing': {
+          const paymentIntent = event.data.object;
+          // Then define and call a function to handle the event payment_intent.processing
+          break;
+      }
+      case 'payment_intent.requires_action': {
+          const paymentIntent = event.data.object;
+          // Then define and call a function to handle the event payment_intent.requires_action
+          break;
+      }
+      case 'payment_intent.succeeded': {
+          const paymentIntent = event.data.object;
+          // Then define and call a function to handle the event payment_intent.succeeded
+          break;
+      }
       // ... handle other event types
       default:
         console.log(`Unhandled event type ${event.type}`);
