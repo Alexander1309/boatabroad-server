@@ -131,6 +131,19 @@ router.delete('/profilePictures', verifyToken, verifyRoles(['User', 'Seller', 'A
     }
 })
 
+router.get('/emailVerifications/:emailVerificationCode', async (req, res) => {
+    const { emailVerificationCode } = req.params
+
+    try {
+        const updateResult = await UsersModel.updateOne({ emailVerificationCode }, { verifyEmail: true })
+        const confirmationStatus = updateResult.modifiedCount === 1 ? 'ok' : 'alreadyVerified'
+
+        res.redirect(`${process.env.WEB_URL}/login?emailConfirmationStatus=${confirmationStatus}`)
+    } catch(error) {
+       res.status(500).json({ error: { message: 'There was an error verifying the email address.' } })
+    }
+})
+
 router.post('/posts/:postId/reservations', verifyToken, verifyRoles(['User']), async (req, res) => {
     const { postId } = req.params
     const { card, startDate, hours } = req.body

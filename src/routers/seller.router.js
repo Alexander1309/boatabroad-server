@@ -1,8 +1,9 @@
 const router = require('express').Router()
+const { v4: uuid } = require('uuid')
 const PostsModel = require('../models/posts.model')
 const UsersModel = require('../models/users.model')
 const ReservationsModel = require('../models/reservations.model')
-const { pictureUpload, deleteFileUpload, deleteOneFile, upload, validateUpload, verifyToken, verifyRoles, sendEmail } = require('../lib/functions')
+const { pictureUpload, deleteFileUpload, upload, validateUpload, verifyToken, verifyRoles, sendEmail, generateCode, encryptPassword } = require('../lib/functions')
 const { msgNewPost } = require('../lib/msg')
 
 const uploadImgPost = upload('img', 500000, /png|jpg|jpeg/, 'posts_picture', 7)
@@ -235,5 +236,34 @@ router.delete('/posts/:postId', verifyToken, verifyRoles(['Seller']), async (req
         } else res.json({server: 'postIsReservedItCannotBeDeleted'})
     } else res.json({server: 'postNotExist'})
 })
+
+router.post("/users", verifyToken, verifyRoles(['Seller']), async (req, res) => {
+    const { name, surname, username, email, password, role } = req.body
+    const emailVerificationCode = `${uuid()}${uuid()}`.replace(/-/g, '').toUpperCase()
+    const emailVerificationUrl = `${process.env.ApiUrl}/emailVerifications/${emailVerificationCode}`
+    const securityCode = generateCode(6)
+    const newUser = new UsersModel({
+      name,
+      surname,
+      username,
+      email,
+      password: await encryptPassword(password),
+      role,
+      emailVerificationCode,
+      securityCode,
+    })
+
+    try {
+      await sendEmail(
+        email,
+        "Verify Email",
+        `<label>Verify your email by going to this URL: </label> <a href="${emailVerificationUrl}">${emailVerificationUrl}</a>`
+      )
+      await newUser.save()
+      res.json({ server: "userCreated" })
+    } catch (e) {
+      res.json({ server: "userNotCreated" })
+    }
+  })
 
 module.exports= router
